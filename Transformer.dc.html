@@ -10,6 +10,10 @@
 <helmet>
   <link rel="stylesheet" href="_ds/organic-7336f2c5-bc27-49df-838d-5bdedab1d2e6/styles.css">
   <script src="_ds/organic-7336f2c5-bc27-49df-838d-5bdedab1d2e6/_ds_bundle.js"></script>
+  <script src="./lib/qrcode.js"></script>
+  <script src="./lib/qrcode_UTF8.js"></script>
+  <script src="./lib/jsQR.js"></script>
+  <script src="./net.js"></script>
   <style>
     body{margin:0;background:var(--color-neutral-300);display:flex;justify-content:center;padding:32px 12px;min-height:100vh}
     *::-webkit-scrollbar{width:0;height:0}
@@ -68,63 +72,64 @@
     <sc-if value="{{ isPairing }}" hint-placeholder-val="{{ true }}">
       <div>
         <h1 style="font-size:26px;margin:6px 0 4px">Gerät verbinden</h1>
-        <p style="font-size:13px;opacity:0.75;margin:0 0 16px">Verbinde dieses Handy mit deinem PC, um Dateien in beide Richtungen zu senden.</p>
+        <p style="font-size:13px;opacity:0.75;margin:0 0 16px">Nur im selben WLAN, Ende-zu-Ende-verschlüsselt, kein Server. Ein Gerät zeigt den Code, das andere scannt ihn.</p>
 
         <div class="seg" style="width:100%;margin-bottom:18px">
           <label class="seg-opt" style="flex:1;justify-content:center">
-            <input type="radio" name="pairtab" checked="{{ isQrTab }}" onChange="{{ setQrTab }}"></input>
-            <span class="dot" style="display:none"></span>QR-Code
+            <input type="radio" name="pairtab" checked="{{ isShowMode }}" onChange="{{ setShowMode }}"></input>
+            <span class="dot" style="display:none"></span>QR-Code zeigen
           </label>
           <label class="seg-opt" style="flex:1;justify-content:center">
-            <input type="radio" name="pairtab" checked="{{ isCodeTab }}" onChange="{{ setCodeTab }}"></input>
-            <span class="dot" style="display:none"></span>Code eingeben
+            <input type="radio" name="pairtab" checked="{{ isScanMode }}" onChange="{{ setScanMode }}"></input>
+            <span class="dot" style="display:none"></span>QR-Code scannen
           </label>
         </div>
 
-        <sc-if value="{{ isQrTab }}" hint-placeholder-val="{{ true }}">
-          <div style="position:relative;width:100%;aspect-ratio:1;background:var(--color-neutral-800);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden">
-            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:46px;height:46px">
-              <rect x="3" y="7" width="18" height="13" rx="2"></rect>
-              <path d="M8 7l1.5-2.5h5L16 7"></path>
-              <circle cx="12" cy="13.5" r="3.2"></circle>
-            </svg>
+        <sc-if value="{{ isShowMode }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;width:100%;aspect-ratio:1;background:var(--color-neutral-800);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden;padding:20px;box-sizing:border-box">
+            <sc-if value="{{ qrImageUrl }}" hint-placeholder-val="{{ false }}">
+              <img src="{{ qrImageUrl }}" alt="QR-Code" style="width:100%;height:100%;object-fit:contain;background:#fff;border-radius:8px"></img>
+            </sc-if>
+            <sc-if value="{{ qrPending }}" hint-placeholder-val="{{ true }}">
+              <div style="width:36px;height:36px;border-radius:999px;border:3px solid var(--color-accent-300);border-top-color:transparent;animation:spin 0.8s linear infinite"></div>
+            </sc-if>
+          </div>
+          <p class="text-muted" style="font-size:12px;text-align:center;margin:0 0 18px">{{ showHint }}</p>
+        </sc-if>
+
+        <sc-if value="{{ isScanMode }}" hint-placeholder-val="{{ false }}">
+          <div style="position:relative;width:100%;aspect-ratio:1;background:#000;border-radius:var(--radius-lg);margin-bottom:14px;overflow:hidden">
+            <video id="pairVideo" autoplay playsinline muted style="width:100%;height:100%;object-fit:cover;display:block"></video>
+            <canvas id="pairCanvas" style="display:none"></canvas>
             <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-top:3px solid var(--color-accent-300);border-left:3px solid var(--color-accent-300);border-radius:6px 0 0 0"></div>
             <div style="position:absolute;top:18px;right:18px;width:28px;height:28px;border-top:3px solid var(--color-accent-300);border-right:3px solid var(--color-accent-300);border-radius:0 6px 0 0"></div>
             <div style="position:absolute;bottom:18px;left:18px;width:28px;height:28px;border-bottom:3px solid var(--color-accent-300);border-left:3px solid var(--color-accent-300);border-radius:0 0 0 6px"></div>
             <div style="position:absolute;bottom:18px;right:18px;width:28px;height:28px;border-bottom:3px solid var(--color-accent-300);border-right:3px solid var(--color-accent-300);border-radius:0 0 6px 0"></div>
           </div>
-          <p class="text-muted" style="font-size:12px;text-align:center;margin:0 0 18px">Richte die Kamera auf den QR-Code auf transformer.app/pc</p>
+          <p class="text-muted" style="font-size:12px;text-align:center;margin:0 0 18px">{{ scanHint }}</p>
         </sc-if>
 
-        <sc-if value="{{ isCodeTab }}" hint-placeholder-val="{{ false }}">
-          <div class="field" style="margin-bottom:12px">
-            <label>6-stelliger Code vom PC</label>
-            <input class="input" value="{{ codeValue }}" onChange="{{ onCodeChange }}" placeholder="123 456" maxlength="6" style="text-align:center;font-size:20px;letter-spacing:6px;font-family:var(--font-heading)"></input>
-          </div>
-          <button class="btn btn-primary btn-block" disabled="{{ codeNotReady }}" onClick="{{ submitCode }}">Verbinden</button>
+        <sc-if value="{{ pairErrorMsg }}" hint-placeholder-val="{{ false }}">
+          <div style="background:var(--color-accent-100);color:var(--color-accent-800);border-radius:var(--radius-md);padding:10px 12px;font-size:12px;margin-bottom:14px">{{ pairErrorMsg }}</div>
         </sc-if>
 
-        <div class="hr"></div>
-        <h6 style="margin:0 0 10px;opacity:0.6">Im WLAN gefunden</h6>
-        <div style="display:flex;flex-direction:column;gap:8px">
-          <sc-for list="{{ foundDevices }}" as="d" hint-placeholder-count="2">
-            <button onClick="{{ d.connect }}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-surface);text-align:left;width:100%">
-              <div style="width:38px;height:38px;border-radius:999px;background:var(--color-accent-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-700);flex:none">
-                <sc-if value="{{ d.isDesktop }}" hint-placeholder-val="{{ true }}">
+        <sc-if value="{{ hasKnownDevices }}" hint-placeholder-val="{{ false }}">
+          <div class="hr"></div>
+          <h6 style="margin:0 0 10px;opacity:0.6">Bereits gekoppelt</h6>
+          <div style="display:flex;flex-direction:column;gap:8px">
+            <sc-for list="{{ knownDevices }}" as="d" hint-placeholder-count="2">
+              <button onClick="{{ d.reconnect }}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-surface);text-align:left;width:100%">
+                <div style="width:38px;height:38px;border-radius:999px;background:var(--color-accent-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-700);flex:none">
                   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
-                </sc-if>
-                <sc-if value="{{ d.isLaptop }}" hint-placeholder-val="{{ false }}">
-                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px"><rect x="4" y="5" width="16" height="10" rx="1.5"></rect><path d="M2 19h20"></path></svg>
-                </sc-if>
-              </div>
-              <div style="flex:1;min-width:0">
-                <div style="font-size:14px;font-weight:600">{{ d.name }}</div>
-                <div style="font-size:11px;opacity:0.65">{{ d.statusLabel }}</div>
-              </div>
-              <span class="{{ d.dotClass }}" style="width:8px;height:8px;border-radius:999px;flex:none"></span>
-            </button>
-          </sc-for>
-        </div>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:14px;font-weight:600">{{ d.name }}</div>
+                  <div style="font-size:11px;opacity:0.65">Erneut verbinden (neuer Code nötig)</div>
+                </div>
+              </button>
+            </sc-for>
+          </div>
+        </sc-if>
 
         <sc-if value="{{ connecting }}" hint-placeholder-val="{{ false }}">
           <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--color-bg) 88%, transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
@@ -156,15 +161,15 @@
                     <div style="font-size:14px;text-wrap:pretty">{{ m.text }}</div>
                   </sc-if>
                   <sc-if value="{{ m.isLink }}" hint-placeholder-val="{{ false }}">
-                    <div onClick="{{ m.openPreview }}" style="display:flex;gap:10px;align-items:center;min-width:180px">
+                    <a href="{{ m.url }}" target="_blank" rel="noopener noreferrer" style="display:flex;gap:10px;align-items:center;min-width:180px;color:inherit;text-decoration:none">
                       <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-2-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-2-700);flex:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M9 15l6-6"></path><path d="M8 8l1.5-1.5a3.5 3.5 0 015 5L13 13"></path><path d="M16 16l-1.5 1.5a3.5 3.5 0 01-5-5L11 11"></path></svg>
                       </div>
                       <div style="min-width:0">
-                        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.title }}</div>
+                        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;text-decoration:underline">{{ m.title }}</div>
                         <div style="font-size:11px;opacity:0.65">{{ m.domain }}</div>
                       </div>
-                    </div>
+                    </a>
                   </sc-if>
                   <sc-if value="{{ m.isFile }}" hint-placeholder-val="{{ false }}">
                     <div onClick="{{ m.openPreview }}" style="display:flex;gap:10px;align-items:center;min-width:180px">
@@ -185,6 +190,9 @@
                     </div>
                   </sc-if>
                   <div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:4px">
+                    <sc-if value="{{ m.pending }}" hint-placeholder-val="{{ false }}">
+                      <span style="font-size:10px;opacity:0.6" title="Wird gesendet, sobald das Gerät im Netzwerk ist">⏳</span>
+                    </sc-if>
                     <span style="font-size:10px;opacity:0.6">{{ m.time }}</span>
                     <button aria-label="Optionen" onClick="{{ m.onMenu }}" style="width:16px;height:16px;display:flex;align-items:center;justify-content:center;opacity:0.55;color:currentColor;flex:none">
                       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="6" r="1.3"></circle><circle cx="12" cy="12" r="1.3"></circle><circle cx="12" cy="18" r="1.3"></circle></svg>
@@ -216,8 +224,6 @@
 
     <sc-if value="{{ isTransfers }}" hint-placeholder-val="{{ false }}">
       <div>
-        <button class="btn btn-secondary btn-block" onClick="{{ simulateIncomingTransfer }}" style="margin-bottom:16px">Eingehende Übertragung simulieren</button>
-
         <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ true }}">
           <h6 style="opacity:0.6;margin:0 0 8px">Läuft</h6>
           <sc-for list="{{ transfersActive }}" as="t" hint-placeholder-count="1">
@@ -277,14 +283,21 @@
         <sc-if value="{{ hasDone }}" hint-placeholder-val="{{ false }}">
           <h6 style="opacity:0.6;margin:14px 0 8px">Fertig</h6>
           <sc-for list="{{ transfersDone }}" as="t" hint-placeholder-count="1">
-            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-divider)">
+            <button onClick="{{ t.download }}" style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-divider);width:100%;text-align:left">
               <div style="width:28px;height:28px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-700);display:flex;align-items:center;justify-content:center;flex:none">
                 <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 13l4 4 10-10"></path></svg>
               </div>
               <div style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</div>
               <div style="font-size:11px;opacity:0.55">{{ t.size }}</div>
-            </div>
+            </button>
           </sc-for>
+        </sc-if>
+
+        <sc-if value="{{ noTransfers }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px;opacity:0.6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;margin-bottom:10px"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg>
+            <div style="font-size:13px">Noch keine Übertragungen</div>
+          </div>
         </sc-if>
       </div>
     </sc-if>
@@ -334,12 +347,18 @@
 
     <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
       <div style="display:flex;flex-direction:column;gap:6px">
-        <h6 style="opacity:0.6;margin:4px 0 2px">Übertragung</h6>
+        <h6 style="opacity:0.6;margin:4px 0 2px">Dieses Gerät</h6>
+        <div class="field" style="margin-bottom:10px">
+          <label>Gerätename (sichtbar für gekoppelte Geräte)</label>
+          <input class="input" value="{{ myDeviceName }}" onChange="{{ onMyDeviceNameChange }}"></input>
+        </div>
+
+        <h6 style="opacity:0.6;margin:8px 0 2px">Übertragung</h6>
         <button onClick="{{ cycleFolder }}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider);text-align:left;width:100%">
           <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M4 6h6l2 2h8v11H4z"></path></svg>
           <div style="flex:1;min-width:0">
-            <div style="font-size:13px;font-weight:600">Auto-Save-Ziel</div>
-            <div style="font-size:11px;opacity:0.6">{{ settingsData.autoSaveFolder }}</div>
+            <div style="font-size:13px;font-weight:600">Bevorzugter Ordner</div>
+            <div style="font-size:11px;opacity:0.6">{{ settingsData.autoSaveFolder }} · der Browser fragt beim Herunterladen trotzdem nach</div>
           </div>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;opacity:0.5;flex:none"><path d="M9 6l6 6-6 6"></path></svg>
         </button>
@@ -352,24 +371,38 @@
           </button>
         </div>
 
-        <h6 style="opacity:0.6;margin:14px 0 2px">Geräte</h6>
-        <sc-for list="{{ devicesList }}" as="dv" hint-placeholder-count="2">
-          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
-            <span style="width:8px;height:8px;border-radius:999px;flex:none;background:{{ dv.dotColor }}"></span>
-            <sc-if value="{{ dv.isRenaming }}" hint-placeholder-val="{{ false }}">
-              <input class="input" value="{{ renameValue }}" onChange="{{ onRenameChange }}" style="flex:1;padding:4px 8px;min-height:28px"></input>
-              <button aria-label="Speichern" onClick="{{ confirmRename }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 13l4 4 10-10"></path></svg></button>
-            </sc-if>
-            <sc-if value="{{ dv.isNotRenaming }}" hint-placeholder-val="{{ true }}">
-              <div style="flex:1;min-width:0">
-                <div style="font-size:13px;font-weight:600">{{ dv.name }}</div>
-                <div style="font-size:11px;opacity:0.6">{{ dv.statusLabel }}</div>
-              </div>
-              <button aria-label="Umbenennen" onClick="{{ dv.rename }}" style="width:26px;height:26px;flex:none;opacity:0.6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 20l1-4 11-11 3 3-11 11z"></path></svg></button>
-              <button aria-label="Entkoppeln" onClick="{{ dv.unlink }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg></button>
-            </sc-if>
-          </div>
-        </sc-for>
+        <div style="display:flex;align-items:center;justify-content:space-between;margin:14px 0 2px">
+          <h6 style="opacity:0.6;margin:0">Geräte</h6>
+          <button onClick="{{ addDevice }}" style="font-size:12px;font-weight:600;color:var(--color-accent-700);display:flex;align-items:center;gap:4px">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:14px;height:14px"><path d="M12 5v14M5 12h14"></path></svg>
+            Hinzufügen
+          </button>
+        </div>
+        <sc-if value="{{ hasDevices }}" hint-placeholder-val="{{ false }}">
+          <sc-for list="{{ devicesList }}" as="dv" hint-placeholder-count="2">
+            <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+              <span style="width:8px;height:8px;border-radius:999px;flex:none;background:{{ dv.dotColor }}"></span>
+              <sc-if value="{{ dv.isRenaming }}" hint-placeholder-val="{{ false }}">
+                <input class="input" value="{{ renameValue }}" onChange="{{ onRenameChange }}" style="flex:1;padding:4px 8px;min-height:28px"></input>
+                <button aria-label="Speichern" onClick="{{ confirmRename }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 13l4 4 10-10"></path></svg></button>
+              </sc-if>
+              <sc-if value="{{ dv.isNotRenaming }}" hint-placeholder-val="{{ true }}">
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600">{{ dv.name }}</div>
+                  <div style="font-size:11px;opacity:0.6">{{ dv.statusLabel }}</div>
+                </div>
+                <sc-if value="{{ dv.isOffline }}" hint-placeholder-val="{{ false }}">
+                  <button aria-label="Neu verbinden" onClick="{{ dv.reconnect }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></button>
+                </sc-if>
+                <button aria-label="Umbenennen" onClick="{{ dv.rename }}" style="width:26px;height:26px;flex:none;opacity:0.6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 20l1-4 11-11 3 3-11 11z"></path></svg></button>
+                <button aria-label="Entkoppeln" onClick="{{ dv.unlink }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg></button>
+              </sc-if>
+            </div>
+          </sc-for>
+        </sc-if>
+        <sc-if value="{{ noDevices }}" hint-placeholder-val="{{ true }}">
+          <p class="text-muted" style="font-size:12px;margin:2px 0 4px">Noch kein Gerät gekoppelt.</p>
+        </sc-if>
 
         <h6 style="opacity:0.6;margin:14px 0 2px">Allgemein</h6>
         <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
@@ -407,14 +440,6 @@
           <div style="font-size:12px">Ende-zu-Ende-verschlüsselt</div>
         </div>
 
-        <div style="margin-top:10px;padding:12px;border-radius:var(--radius-md);border:1px dashed var(--color-divider)">
-          <h6 style="opacity:0.55;margin:0 0 8px">Vorschau-Ereignisse</h6>
-          <div style="display:flex;flex-direction:column;gap:6px">
-            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateIncomingMessage }}">Nachricht empfangen simulieren</button>
-            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateIncomingTransfer }}">Übertragung empfangen simulieren</button>
-            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateConnectionLost }}">Verbindung verloren simulieren</button>
-          </div>
-        </div>
       </div>
     </sc-if>
 
@@ -441,6 +466,8 @@
             </button>
           </div>
         </sc-if>
+        <input id="fileInputImage" type="file" accept="image/*" onChange="{{ onFileChosen }}" style="display:none"></input>
+        <input id="fileInputAny" type="file" onChange="{{ onFileChosen }}" style="display:none"></input>
         <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--color-divider);background:var(--color-surface)">
           <button aria-label="Anhang" onClick="{{ toggleAttachMenu }}" style="width:34px;height:34px;flex:none;color:var(--color-accent-700)">
             <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M8 12l6-6a3 3 0 114 4l-8 8a5 5 0 01-7-7l7-7"></path></svg>
@@ -480,7 +507,7 @@
     <div class="dialog-backdrop" style="position:absolute">
       <div class="dialog">
         <div class="dialog-title">Eingehende Übertragung</div>
-        <div class="dialog-body">{{ incomingDialogName }} von {{ deviceName }} · {{ incomingDialogSize }}</div>
+        <div class="dialog-body">{{ incomingDialogName }} von {{ incomingDialogDeviceName }} · {{ incomingDialogSize }}</div>
         <div class="dialog-actions">
           <button class="btn btn-secondary" onClick="{{ rejectIncoming }}">Ablehnen</button>
           <button class="btn btn-primary" onClick="{{ acceptIncoming }}">Annehmen</button>
@@ -540,7 +567,7 @@
         </sc-if>
         <div class="dialog-actions">
           <button class="btn btn-secondary" onClick="{{ closePreview }}">Schließen</button>
-          <button class="btn btn-primary">Öffnen</button>
+          <button class="btn btn-primary" disabled="{{ previewNoUrl }}" onClick="{{ downloadPreview }}">Herunterladen</button>
         </div>
       </div>
     </div>
@@ -565,36 +592,24 @@
 }">
 class Component extends DCLogic {
   state = {
-    screen: this.props.startScreen || 'pairing',
+    screen: (this.props.startScreen === 'home' || TransformerNet.peers.length > 0) ? 'home' : 'pairing',
     theme: this.props.theme || 'light',
-    pairingTab: 'qr',
-    codeValue: '',
+    myDeviceName: (function () { try { return localStorage.getItem('transformer.myname.v1') || 'Mein Handy'; } catch (e) { return 'Mein Handy'; } })(),
+    pairMode: 'show',
+    pairPhase: 'idle',
+    qrImageUrl: null,
+    qrPending: false,
+    pairErrorMsg: null,
+    scanStatusText: 'Kamera wird gestartet…',
     connecting: false,
     connectingName: '',
-    paired: false,
-    connected: false,
-    device: null,
     selectMode: false,
     selectedIds: [],
     contextMenuFor: null,
     attachMenuOpen: false,
     composerText: '',
-    messages: [
-      { id: 'm1', kind: 'date', label: 'Heute', deviceId: 'd1' },
-      { id: 'm2', kind: 'text', dir: 'in', text: 'Hey, schick mir kurz die Präsentation?', time: '09:12', deviceId: 'd1' },
-      { id: 'm3', kind: 'text', dir: 'out', text: 'Klar, einen Moment.', time: '09:13', deviceId: 'd1' },
-      { id: 'm4', kind: 'file', dir: 'out', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', time: '09:14', deviceId: 'd1' },
-      { id: 'm5', kind: 'link', dir: 'in', title: 'Figma – Projektdateien', domain: 'figma.com', time: '09:20', deviceId: 'd1' },
-      { id: 'm6', kind: 'images', dir: 'in', count: 2, time: '09:24', deviceId: 'd1' },
-      { id: 'm7', kind: 'text', dir: 'out', text: 'Sieht gut aus, danke!', time: '09:25', deviceId: 'd1' },
-    ],
-    transfers: [
-      { id: 't1', name: 'Urlaubsfotos.zip', size: '128 MB', ext: 'ZIP', dir: 'send', status: 'active', progress: 62, speed: '11.4 MB/s' },
-      { id: 't2', name: 'Notizen.txt', size: '4 KB', ext: 'TXT', dir: 'receive', status: 'waiting', progress: 0 },
-      { id: 't3', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', dir: 'send', status: 'done', progress: 100 },
-      { id: 't4', name: 'Rechnung_September.pdf', size: '220 KB', ext: 'PDF', dir: 'receive', status: 'done', progress: 100 },
-      { id: 't5', name: 'Video_Projekt.mp4', size: '640 MB', ext: 'MP4', dir: 'send', status: 'failed', progress: 34, reason: 'Verbindung unterbrochen' },
-    ],
+    messages: [],
+    transfers: [],
     incomingDialog: null,
     toasts: [],
     banner: null,
@@ -609,30 +624,37 @@ class Component extends DCLogic {
       notifications: true,
       biometricLock: false,
     },
-    devices: [
-      { id: 'd1', name: 'Büro-PC', type: 'desktop', status: 'online' },
-      { id: 'd2', name: 'Homeoffice-Laptop', type: 'laptop', status: 'offline', lastSeen: 'vor 2 Std.' },
-    ],
+    devices: TransformerNet.peers.map((p) => ({ id: p.id, name: p.name, type: 'desktop', status: 'offline' })),
     renameDeviceId: null,
     renameValue: '',
-    chatTargetDeviceId: null,
+    chatTargetDeviceId: (TransformerNet.peers[0] && TransformerNet.peers[0].id) || null,
   };
 
   componentDidMount() {
-    this._interval = setInterval(() => this.tick(), 900);
     this._keyHandler = (e) => {
       if (!this.state.lightbox) return;
-      if (e.key === 'Escape') this.closeLightbox();
+      if (e.key === 'Escape') this.setState({ lightbox: null });
       if (e.key === 'ArrowRight') this.navLightbox(1);
       if (e.key === 'ArrowLeft') this.navLightbox(-1);
     };
     document.addEventListener('keydown', this._keyHandler);
     this._lastScrollKey = this.chatScrollKey();
     this.maybeScrollChat();
+
+    this._offStatus = TransformerNet.on('status', (peerId, status) => this.onPeerStatus(peerId, status));
+    this._offMessage = TransformerNet.on('message', (peerId, body) => this.onPeerMessage(peerId, body));
+    this._offProgress = TransformerNet.on('progress', (peerId, transferId, info) => this.onPeerProgress(peerId, transferId, info));
+    this._offIncoming = TransformerNet.on('incoming-request', (peerId, meta) => this.onIncomingRequest(peerId, meta));
+
+    if (this.state.screen === 'pairing') this.startShowOffer();
   }
   componentWillUnmount() {
-    clearInterval(this._interval);
     document.removeEventListener('keydown', this._keyHandler);
+    this._offStatus && this._offStatus();
+    this._offMessage && this._offMessage();
+    this._offProgress && this._offProgress();
+    this._offIncoming && this._offIncoming();
+    this.stopScanning();
   }
   componentDidUpdate() {
     const key = this.chatScrollKey();
@@ -658,23 +680,9 @@ class Component extends DCLogic {
     if (s.devices.some((d) => d.id === s.chatTargetDeviceId)) return s.chatTargetDeviceId;
     return (s.devices[0] && s.devices[0].id) || null;
   }
-
-  tick() {
-    this.setState((s) => {
-      let transfers = s.transfers.map((t) => {
-        if (t.status !== 'active') return t;
-        const progress = Math.min(100, t.progress + 4 + Math.random() * 9);
-        return { ...t, progress, status: progress >= 100 ? 'done' : 'active' };
-      });
-      if (!transfers.some((t) => t.status === 'active')) {
-        const idx = transfers.findIndex((t) => t.status === 'waiting');
-        if (idx >= 0) {
-          const speed = (8 + Math.random() * 6).toFixed(1) + ' MB/s';
-          transfers = transfers.map((t, i) => (i === idx ? { ...t, status: 'active', speed } : t));
-        }
-      }
-      return { transfers };
-    });
+  peerName(id) {
+    const d = this.state.devices.find((x) => x.id === id);
+    return (d && d.name) || 'Gerät';
   }
 
   addToast(type, message) {
@@ -692,68 +700,242 @@ class Component extends DCLogic {
     this.setState({ screen, selectMode: false, selectedIds: [], contextMenuFor: null });
   }
 
-  doConnect(d) {
-    this.setState({ connecting: true, connectingName: d.name });
-    setTimeout(() => {
-      this.setState((s) => {
-        const exists = s.devices.some((x) => x.id === d.id);
-        const devices = exists
-          ? s.devices.map((x) => (x.id === d.id ? { ...x, status: 'online' } : x))
-          : [...s.devices, { id: d.id, name: d.name, type: d.type, status: 'online' }];
-        return {
-          connecting: false,
-          paired: true,
-          connected: true,
-          screen: 'home',
-          device: { id: d.id, name: d.name, type: d.type },
-          devices,
-          chatTargetDeviceId: d.id,
-        };
-      });
-      this.addToast('success', 'Mit ' + d.name + ' verbunden');
-    }, 1400);
+  // ------------------------------------------------------------ pairing
+
+  setMyDeviceName(name) {
+    this.setState({ myDeviceName: name });
+    try { localStorage.setItem('transformer.myname.v1', name); } catch (e) {}
   }
 
-  submitCode() {
-    if (this.state.codeValue.length !== 6) return;
-    this.doConnect({ id: 'code-device', name: 'PC-' + this.state.codeValue.slice(0, 3), type: 'desktop' });
+  setShowMode() {
+    this.stopScanning();
+    this.setState({ pairMode: 'show', pairErrorMsg: null });
+    if (this.state.pairPhase === 'idle') this.startShowOffer();
+  }
+  setScanMode() {
+    this.setState({ pairMode: 'scan', pairErrorMsg: null });
+    this.startScanning();
+  }
+
+  startShowOffer() {
+    this.setState({ qrPending: true, qrImageUrl: null, pairErrorMsg: null });
+    const reuseId = this._reconnectTargetId || null;
+    TransformerNet.createOfferPayload(this.state.myDeviceName, reuseId).then((payload) => {
+      const url = TransformerNet.makeQrDataUrl(payload);
+      this.setState({ qrImageUrl: url, qrPending: false, pairPhase: 'offer-shown' });
+    }).catch((err) => {
+      this.setState({ qrPending: false, pairErrorMsg: 'Code konnte nicht erstellt werden: ' + (err && err.message ? err.message : err) });
+    });
+  }
+
+  addDevice() {
+    TransformerNet.cancelPending();
+    this.stopScanning();
+    this._reconnectTargetId = null;
+    this.setState({ screen: 'pairing', pairMode: 'show', pairPhase: 'idle', qrImageUrl: null, pairErrorMsg: null });
+    this.startShowOffer();
+  }
+  reconnectDevice(d) {
+    TransformerNet.cancelPending();
+    this.stopScanning();
+    this._reconnectTargetId = d.id;
+    this.setState({ screen: 'pairing', pairMode: 'show', pairPhase: 'idle', qrImageUrl: null, pairErrorMsg: null });
+    this.startShowOffer();
+  }
+
+  startScanning() {
+    const video = document.getElementById('pairVideo');
+    if (!video) return;
+    this.setState({ scanStatusText: 'Kamera wird gestartet…' });
+    navigator.mediaDevices.getUserMedia({ video: { facingMode: 'environment' } }).then((stream) => {
+      this._camStream = stream;
+      video.srcObject = stream;
+      this.setState({ scanStatusText: 'Suche Code…' });
+      this._scanTick();
+    }).catch((err) => {
+      this.setState({ pairErrorMsg: 'Kamera nicht verfügbar: ' + (err && err.message ? err.message : err) });
+    });
+  }
+  stopScanning() {
+    if (this._camStream) {
+      this._camStream.getTracks().forEach((t) => t.stop());
+      this._camStream = null;
+    }
+    if (this._scanRAF) {
+      cancelAnimationFrame(this._scanRAF);
+      this._scanRAF = null;
+    }
+  }
+  _scanTick() {
+    this._scanRAF = requestAnimationFrame(() => this._scanTick());
+    const video = document.getElementById('pairVideo');
+    const canvas = document.getElementById('pairCanvas');
+    if (!video || !canvas || video.readyState !== video.HAVE_ENOUGH_DATA || !video.videoWidth) return;
+    canvas.width = video.videoWidth;
+    canvas.height = video.videoHeight;
+    const ctx = canvas.getContext('2d');
+    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+    let imageData;
+    try {
+      imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+    } catch (e) {
+      return;
+    }
+    const result = TransformerNet.decodeQrFromImageData(imageData);
+    if (result && result.data) {
+      this.stopScanning();
+      this.setState({ scanStatusText: 'Code erkannt, verbinde…' });
+      this.onScanned(result.data);
+    }
+  }
+
+  onScanned(text) {
+    TransformerNet.handleScannedPayload(text, this.state.myDeviceName).then((result) => {
+      if (result.role === 'answerer') {
+        const url = TransformerNet.makeQrDataUrl(result.qrPayload);
+        this.setState({ pairMode: 'show', pairPhase: 'answer-shown', qrImageUrl: url, pairErrorMsg: null, connecting: true, connectingName: result.peer.name });
+      } else if (result.role === 'offerer-complete') {
+        this._reconnectTargetId = null;
+        this.setState({ connecting: true, connectingName: result.peer.name });
+      }
+    }).catch((err) => {
+      this.setState({ pairErrorMsg: err && err.message ? err.message : String(err) });
+      this.startScanning();
+    });
+  }
+
+  onPeerStatus(peerId, status) {
+    const peer = TransformerNet.getPeer(peerId);
+    const name = (peer && peer.name) || 'Gerät';
+    const existing = this.state.devices.find((d) => d.id === peerId);
+    const wasOnline = existing && existing.status === 'online';
+    const wasPairingScreen = this.state.screen === 'pairing';
+
+    this.setState((s) => {
+      const devices = existing
+        ? s.devices.map((d) => (d.id === peerId ? { ...d, name, status: status === 'open' ? 'online' : 'offline' } : d))
+        : [...s.devices, { id: peerId, name, type: 'desktop', status: status === 'open' ? 'online' : 'offline' }];
+      const patch = { devices };
+      if (status === 'open') {
+        patch.connecting = false;
+        if (wasPairingScreen) {
+          patch.screen = 'home';
+          patch.chatTargetDeviceId = peerId;
+          patch.pairPhase = 'idle';
+          patch.qrImageUrl = null;
+        }
+      }
+      return patch;
+    });
+
+    if (status === 'open') this.addToast('success', 'Verbunden mit ' + name);
+    else if (status === 'offline' && wasOnline) this.addToast('error', name + ' getrennt');
+  }
+
+  onIncomingRequest(peerId, meta) {
+    if (this.state.settings.autoAccept) {
+      TransformerNet.acceptIncomingTransfer(peerId, meta);
+    } else {
+      this.setState({ incomingDialog: { peerId, meta } });
+    }
+  }
+
+  onPeerMessage(peerId, body) {
+    const entry = { ...body, id: 'm-' + (body.msgId || Date.now()), dir: 'in', deviceId: peerId };
+    this.setState((s) => ({ messages: [...s.messages, entry] }));
+    const viewingThisChat = this.state.screen === 'home' && this.activeDeviceId() === peerId;
+    if (!viewingThisChat) {
+      const label = body.kind === 'link' ? (body.title || body.domain) : (body.text || 'Nachricht');
+      this.showBanner({ title: this.peerName(peerId), message: label });
+    }
+  }
+
+  onPeerProgress(peerId, transferId, info) {
+    this.setState((s) => {
+      const idx = s.transfers.findIndex((t) => t.id === transferId);
+      const prev = idx >= 0 ? s.transfers[idx] : { id: transferId, deviceId: peerId };
+      const next = {
+        ...prev,
+        name: info.name || prev.name,
+        size: info.size != null ? TransformerNet.fmtBytes(info.size) : prev.size,
+        ext: info.ext || prev.ext,
+        dir: info.direction === 'receive' ? 'receive' : 'send',
+        status: info.status,
+        progress: info.receivedPct != null ? info.receivedPct : (prev.progress || 0),
+        reason: info.reason || null,
+        url: info.url || prev.url,
+      };
+      const transfers = idx >= 0 ? s.transfers.map((t, i) => (i === idx ? next : t)) : [...s.transfers, next];
+      return { transfers };
+    });
+
+    if (info.status === 'done' && info.direction === 'receive') {
+      this.addToast('success', (info.name || 'Datei') + ' empfangen');
+      this.setState((s) => ({
+        messages: [...s.messages, {
+          id: 'file-' + transferId, kind: 'file', dir: 'in', name: info.name,
+          size: TransformerNet.fmtBytes(info.size || 0), ext: info.ext, time: this.now(),
+          deviceId: peerId, downloadUrl: info.url,
+        }],
+      }));
+      if (this.state.screen !== 'home' || this.activeDeviceId() !== peerId) {
+        this.showBanner({ title: this.peerName(peerId), message: info.name + ' erhalten' });
+      }
+    } else if (info.status === 'done' && info.direction === 'send') {
+      this.addToast('success', (info.name || 'Datei') + ' gesendet');
+    } else if (info.status === 'failed') {
+      this.addToast('error', (info.name || 'Datei') + ' fehlgeschlagen');
+    }
   }
 
   sendMessage() {
-    if (!this.state.connected) {
-      this.addToast('error', 'Nicht verbunden');
+    const peerId = this.activeDeviceId();
+    if (!peerId) {
+      this.addToast('error', 'Kein Gerät gekoppelt');
       return;
     }
     const text = this.state.composerText.trim();
     if (!text) return;
     const isLink = /^https?:\/\//i.test(text) || /^[\w.-]+\.[a-z]{2,}\//i.test(text);
-    const id = 'm-' + Date.now();
     const time = this.now();
-    const deviceId = this.activeDeviceId();
-    let entry;
+    let body;
     if (isLink) {
+      const url = /^https?:\/\//i.test(text) ? text : 'https://' + text;
       const domain = text.replace(/^https?:\/\//i, '').split('/')[0];
-      entry = { id, kind: 'link', dir: 'out', title: 'Geteilter Link', domain, time, deviceId };
+      body = { kind: 'link', title: 'Geteilter Link', domain, url, time };
     } else {
-      entry = { id, kind: 'text', dir: 'out', text, time, deviceId };
+      body = { kind: 'text', text, time };
     }
-    this.setState((s) => ({ messages: [...s.messages, entry], composerText: '' }));
+    TransformerNet.sendMessage(peerId, body).then((res) => {
+      const entry = { ...body, id: 'm-' + res.msgId, dir: 'out', deviceId: peerId, pending: res.queued };
+      this.setState((s) => ({ messages: [...s.messages, entry], composerText: '' }));
+      if (res.queued) this.addToast('info', 'Wird gesendet, sobald ' + this.peerName(peerId) + ' im Netzwerk ist');
+    });
   }
 
-  attach(kind) {
-    if (!this.state.connected) {
-      this.addToast('error', 'Nicht verbunden');
-      this.setState({ attachMenuOpen: false });
+  pickFile(kind) {
+    this.setState({ attachMenuOpen: false });
+    const input = document.getElementById(kind === 'image' ? 'fileInputImage' : 'fileInputAny');
+    if (input) input.click();
+  }
+  onFileChosen(e) {
+    const file = e.target.files && e.target.files[0];
+    e.target.value = '';
+    if (!file) return;
+    const peerId = this.activeDeviceId();
+    if (!peerId) {
+      this.addToast('error', 'Kein Gerät gekoppelt');
       return;
     }
-    const id = 'm-' + Date.now();
-    const time = this.now();
-    const deviceId = this.activeDeviceId();
-    const entry =
-      kind === 'image'
-        ? { id, kind: 'images', dir: 'out', count: 1, time, deviceId }
-        : { id, kind: 'file', dir: 'out', name: 'Scan_' + this.now().replace(':', '') + '.pdf', size: '1.1 MB', ext: 'PDF', time, deviceId };
-    this.setState((s) => ({ messages: [...s.messages, entry], attachMenuOpen: false }));
+    const isImage = /^image\//.test(file.type);
+    const localUrl = URL.createObjectURL(file);
+    TransformerNet.sendFile(peerId, file).then((res) => {
+      const entry = isImage
+        ? { id: 'file-' + res.transferId, kind: 'images', dir: 'out', count: 1, time: this.now(), deviceId: peerId, downloadUrl: localUrl }
+        : { id: 'file-' + res.transferId, kind: 'file', dir: 'out', name: file.name, size: TransformerNet.fmtBytes(file.size), ext: TransformerNet.extOf(file.name), time: this.now(), deviceId: peerId, downloadUrl: localUrl };
+      this.setState((s) => ({ messages: [...s.messages, entry] }));
+      if (res.queued) this.addToast('info', 'Wird gesendet, sobald ' + this.peerName(peerId) + ' im Netzwerk ist');
+    });
   }
 
   toggleSelectMode() {
@@ -785,42 +967,48 @@ class Component extends DCLogic {
       this.setState((s) => ({ messages: s.messages.filter((m) => m.id !== item.id) }));
       return;
     }
-    if (action === 'copy') this.addToast('success', 'Kopiert');
-    if (action === 'save') this.addToast('success', 'Gespeichert');
-    if (action === 'open') this.openMessagePreview(item);
+    if (action === 'copy') {
+      if (item.kind === 'text' && navigator.clipboard) navigator.clipboard.writeText(item.text).catch(() => {});
+      this.addToast('success', 'Kopiert');
+    }
+    if (action === 'save') this.downloadItem(item);
+    if (action === 'open') {
+      if (item.kind === 'link') window.open(item.url, '_blank', 'noopener,noreferrer');
+      else this.openMessagePreview(item);
+    }
     if (action === 'forward') this.addToast('info', 'Weitergeleitet');
+  }
+  downloadItem(item) {
+    const url = item.downloadUrl || item.url;
+    if (!url) {
+      this.addToast('error', 'Keine Datei zum Herunterladen');
+      return;
+    }
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = item.name || 'datei';
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
   }
 
   openMessagePreview(item) {
     if (item.kind === 'file') {
-      this.setState({ preview: { name: item.name, type: 'other', ext: item.ext, meta: item.size } });
-    } else if (item.kind === 'link') {
-      this.setState({ preview: { name: item.title, type: 'other', ext: 'LINK', meta: item.domain } });
+      this.setState({ preview: { name: item.name, type: 'other', ext: item.ext, meta: item.size, url: item.downloadUrl } });
     } else if (item.kind === 'images') {
-      this.setState({ preview: { name: (item.count || 1) + ' Bild(er)', type: 'image', ext: 'IMG', meta: '' } });
+      this.setState({ preview: { name: (item.count || 1) + ' Bild(er)', type: 'image', ext: 'IMG', meta: '', url: item.downloadUrl } });
     }
+  }
+  downloadPreview() {
+    if (this.state.preview) this.downloadItem(this.state.preview);
   }
 
   cancelTransfer(id) {
-    this.setState((s) => ({
-      transfers: s.transfers.map((t) => (t.id === id ? { ...t, status: 'failed', reason: 'Vom Nutzer abgebrochen' } : t)),
-    }));
+    const t = this.state.transfers.find((x) => x.id === id);
+    if (t && t.deviceId) TransformerNet.cancelTransfer(t.deviceId, id);
   }
-  retryTransfer(id) {
-    this.setState((s) => ({
-      transfers: s.transfers.map((t) => (t.id === id ? { ...t, status: 'waiting', progress: 0, reason: null } : t)),
-    }));
-  }
-
-  simulateIncomingTransfer() {
-    const item = { id: 't-' + Date.now(), name: 'Skizze_Entwurf.png', size: '3.4 MB', ext: 'PNG', dir: 'receive', status: 'active', progress: 0, speed: '6.2 MB/s' };
-    if (this.state.settings.autoAccept) {
-      this.setState((s) => ({ transfers: [...s.transfers, item] }));
-      this.addToast('info', 'Empfange ' + item.name);
-      if (this.state.screen !== 'transfers') this.showBanner({ title: 'Neue Übertragung', message: item.name });
-    } else {
-      this.setState({ incomingDialog: item });
-    }
+  retryTransfer() {
+    this.addToast('info', 'Erneutes Senden: bitte Datei im Chat neu anhängen');
   }
 
   showBanner(banner) {
@@ -832,33 +1020,16 @@ class Component extends DCLogic {
     }, 5000);
   }
   acceptIncoming() {
-    const item = this.state.incomingDialog;
-    this.setState((s) => ({ transfers: [...s.transfers, { ...item, status: 'active', progress: 0 }], incomingDialog: null }));
+    const d = this.state.incomingDialog;
+    if (d) TransformerNet.acceptIncomingTransfer(d.peerId, d.meta);
+    this.setState({ incomingDialog: null });
     this.addToast('success', 'Übertragung angenommen');
   }
   rejectIncoming() {
+    const d = this.state.incomingDialog;
+    if (d) TransformerNet.rejectIncomingTransfer(d.peerId, d.meta);
     this.addToast('info', 'Übertragung abgelehnt');
     this.setState({ incomingDialog: null });
-  }
-
-  simulateIncomingMessage() {
-    const id = 'm-' + Date.now();
-    const deviceId = this.activeDeviceId();
-    const entry = { id, kind: 'text', dir: 'in', text: 'Kannst du mir das Update noch heute schicken?', time: this.now(), deviceId };
-    this.setState((s) => ({ messages: [...s.messages, entry] }));
-    if (this.state.screen !== 'home') {
-      const dv = this.state.devices.find((d) => d.id === deviceId);
-      const deviceName = (dv && dv.name) || (this.state.device && this.state.device.name) || 'Nachricht';
-      this.showBanner({ title: deviceName, message: entry.text });
-    }
-  }
-  simulateConnectionLost() {
-    this.setState({ connected: false });
-    this.addToast('error', 'Verbindung verloren');
-    setTimeout(() => {
-      this.setState({ connected: true });
-      this.addToast('success', 'Wieder verbunden');
-    }, 2500);
   }
 
   openLightbox(index) {
@@ -882,9 +1053,9 @@ class Component extends DCLogic {
     this.setState({ renameDeviceId: d.id, renameValue: d.name });
   }
   confirmRename() {
+    TransformerNet.renamePeer(this.state.renameDeviceId, this.state.renameValue);
     this.setState((s) => ({
       devices: s.devices.map((d) => (d.id === s.renameDeviceId ? { ...d, name: s.renameValue || d.name } : d)),
-      device: s.device && s.device.id === s.renameDeviceId ? { ...s.device, name: s.renameValue || s.device.name } : s.device,
       renameDeviceId: null,
     }));
   }
@@ -892,16 +1063,15 @@ class Component extends DCLogic {
     this.setState({
       confirmDialog: {
         title: 'Gerät entkoppeln',
-        body: '"' + d.name + '" wird entkoppelt und muss neu verbunden werden.',
+        body: '"' + d.name + '" wird entkoppelt, der Schlüssel gelöscht. Für eine neue Verbindung ist erneutes Pairing nötig.',
         confirmLabel: 'Entkoppeln',
         onConfirm: () => {
+          TransformerNet.forgetPeer(d.id);
           this.setState((s) => {
-            const wasActive = s.device && s.device.id === d.id;
-            return {
-              devices: s.devices.filter((x) => x.id !== d.id),
-              chatTargetDeviceId: s.chatTargetDeviceId === d.id ? null : s.chatTargetDeviceId,
-              ...(wasActive ? { paired: false, connected: false, device: null, screen: 'pairing' } : {}),
-            };
+            const devices = s.devices.filter((x) => x.id !== d.id);
+            const chatTargetDeviceId = s.chatTargetDeviceId === d.id ? ((devices[0] && devices[0].id) || null) : s.chatTargetDeviceId;
+            const screen = devices.length === 0 ? 'pairing' : s.screen;
+            return { devices, chatTargetDeviceId, screen };
           });
           this.addToast('info', d.name + ' entkoppelt');
         },
@@ -915,7 +1085,7 @@ class Component extends DCLogic {
         body: 'Der gesamte Übertragungsverlauf wird unwiderruflich gelöscht.',
         confirmLabel: 'Löschen',
         onConfirm: () => {
-          this.setState({ transfers: [], messages: [] });
+          this.setState({ transfers: [] });
           this.addToast('success', 'Verlauf gelöscht');
         },
       },
@@ -928,16 +1098,24 @@ class Component extends DCLogic {
   }
 
   buildHistory() {
-    return [
-      { id: 'h1', type: 'image', name: 'Foto_Strand.jpg', meta: 'Heute · 2.1 MB' },
-      { id: 'h2', type: 'image', name: 'Screenshot_Team.png', meta: 'Heute · 640 KB' },
-      { id: 'h3', type: 'file', name: 'Praesentation_Q3.pdf', ext: 'PDF', meta: 'Heute · 4.2 MB' },
-      { id: 'h4', type: 'file', name: 'Rechnung_September.pdf', ext: 'PDF', meta: 'Gestern · 220 KB' },
-      { id: 'h5', type: 'link', name: 'figma.com/projekt', meta: 'Gestern' },
-      { id: 'h6', type: 'text', name: 'Klar, einen Moment.', meta: 'Heute · 09:13' },
-      { id: 'h7', type: 'image', name: 'Skizze_Entwurf.png', meta: 'Vorgestern · 3.4 MB' },
-      { id: 'h8', type: 'image', name: 'Team_Offsite.jpg', meta: 'Vorgestern · 5.0 MB' },
-    ];
+    const s = this.state;
+    const isImageExt = (ext) => /^(JPG|JPEG|PNG|GIF|WEBP|HEIC|BMP)$/i.test(ext || '');
+    const fileItems = s.transfers.filter((t) => t.status === 'done').map((t) => ({
+      id: 'h-t-' + t.id,
+      type: isImageExt(t.ext) ? 'image' : 'file',
+      name: t.name,
+      ext: t.ext,
+      meta: t.size + ' · ' + (t.dir === 'send' ? 'Gesendet' : 'Empfangen'),
+      downloadUrl: t.url,
+    }));
+    const msgItems = s.messages.filter((m) => m.kind === 'link' || m.kind === 'text').map((m) => ({
+      id: 'h-m-' + m.id,
+      type: m.kind === 'link' ? 'link' : 'text',
+      name: m.kind === 'link' ? (m.title || m.domain) : m.text,
+      meta: m.time,
+      url: m.kind === 'link' ? m.url : null,
+    }));
+    return [...fileItems, ...msgItems];
   }
 
   renderVals() {
@@ -1006,10 +1184,11 @@ class Component extends DCLogic {
 
     const withTransferHelpers = (t) => ({
       ...t,
-      progressPct: Math.round(t.progress) + '%',
-      progressLabel: Math.round(t.progress) + '%',
+      progressPct: Math.round(t.progress || 0) + '%',
+      progressLabel: Math.round(t.progress || 0) + '%',
       cancel: () => this.cancelTransfer(t.id),
-      retry: () => this.retryTransfer(t.id),
+      retry: () => this.retryTransfer(),
+      download: () => this.downloadItem(t),
     });
     const transfersActive = s.transfers.filter((t) => t.status === 'active').map(withTransferHelpers);
     const transfersWaiting = s.transfers.filter((t) => t.status === 'waiting').map(withTransferHelpers);
@@ -1047,26 +1226,21 @@ class Component extends DCLogic {
       select: () => this.setState({ historyFilter: id }),
     }));
 
-    const foundDevices = [
-      { id: 'fd1', name: 'Büro-PC', type: 'desktop', status: 'online' },
-      { id: 'fd2', name: 'Wohnzimmer-Laptop', type: 'laptop', status: 'offline', lastSeen: 'vor 2 Std.' },
-    ].map((d) => ({
+    const knownDevices = s.devices.filter((d) => d.status !== 'online').map((d) => ({
       ...d,
-      isDesktop: d.type === 'desktop',
-      isLaptop: d.type === 'laptop',
-      statusLabel: d.status === 'online' ? 'Online' : 'Zuletzt gesehen ' + d.lastSeen,
-      dotClass: d.status === 'online' ? 'tag-accent-2' : 'tag-neutral',
-      connect: () => this.doConnect(d),
+      reconnect: () => this.reconnectDevice(d),
     }));
 
     const devicesList = s.devices.map((d) => ({
       ...d,
       isRenaming: s.renameDeviceId === d.id,
       isNotRenaming: s.renameDeviceId !== d.id,
-      statusLabel: d.status === 'online' ? 'Online · aktuell verbunden' : 'Zuletzt gesehen ' + d.lastSeen,
+      isOffline: d.status !== 'online',
+      statusLabel: d.status === 'online' ? 'Online · verbunden' : 'Nicht im Netzwerk',
       dotColor: d.status === 'online' ? 'var(--color-accent-2-500)' : 'var(--color-neutral-400)',
       rename: () => this.startRename(d),
       unlink: () => this.askUnlinkDevice(d),
+      reconnect: () => this.reconnectDevice(d),
     }));
 
     const tabs = [
@@ -1084,8 +1258,12 @@ class Component extends DCLogic {
     const toasts = s.toasts.map((t) => ({ ...t, bg: (toastStyle[t.type] || toastStyle.info)[0], color: (toastStyle[t.type] || toastStyle.info)[1] }));
 
     const preview = s.preview
-      ? { ...s.preview, isImage: s.preview.type === 'image', isText: s.preview.type === 'text', isOther: s.preview.type !== 'image' && s.preview.type !== 'text' }
+      ? { ...s.preview, url: s.preview.url || s.preview.downloadUrl, isImage: s.preview.type === 'image', isText: s.preview.type === 'text', isOther: s.preview.type !== 'image' && s.preview.type !== 'text' }
       : null;
+
+    const activeStatus = activeDeviceId ? TransformerNet.status(activeDeviceId) : 'offline';
+    const isConnected = activeStatus === 'open';
+    const activeDevice = s.devices.find((d) => d.id === activeDeviceId) || null;
 
     return {
       phoneWidth: 412,
@@ -1100,24 +1278,28 @@ class Component extends DCLogic {
       isLightTheme: s.theme === 'light',
       notPairing: s.screen !== 'pairing',
       rootStyle,
-      paired: s.paired,
-      connectedTagClass: s.connected ? 'tag-accent-2' : 'tag-neutral',
-      connectedLabel: s.connected ? 'Verbunden' : 'Getrennt',
+      paired: s.devices.length > 0,
+      connectedTagClass: isConnected ? 'tag-accent-2' : 'tag-neutral',
+      connectedLabel: isConnected ? 'Verbunden' : 'Getrennt',
       headerTitle: s.screen === 'home' ? 'Chat' : s.screen === 'transfers' ? 'Übertragungen' : s.screen === 'history' ? 'Verlauf' : s.screen === 'settings' ? 'Einstellungen' : 'Transformer',
-      deviceName: s.device ? s.device.name : '',
+      deviceName: activeDevice ? activeDevice.name : '',
       banner: s.banner,
       dismissBanner: () => this.setState({ banner: null }),
       openBannerTarget: () => this.setState({ screen: 'home', banner: null }),
 
-      isQrTab: s.pairingTab === 'qr',
-      isCodeTab: s.pairingTab === 'code',
-      setQrTab: () => this.setState({ pairingTab: 'qr' }),
-      setCodeTab: () => this.setState({ pairingTab: 'code' }),
-      codeValue: s.codeValue,
-      onCodeChange: (e) => this.setState({ codeValue: e.target.value.replace(/[^0-9]/g, '').slice(0, 6) }),
-      codeNotReady: s.codeValue.length !== 6,
-      submitCode: () => this.submitCode(),
-      foundDevices,
+      isShowMode: s.pairMode === 'show',
+      isScanMode: s.pairMode === 'scan',
+      setShowMode: () => this.setShowMode(),
+      setScanMode: () => this.setScanMode(),
+      qrImageUrl: s.qrImageUrl,
+      qrPending: s.qrPending,
+      pairErrorMsg: s.pairErrorMsg,
+      showHint: s.pairPhase === 'answer-shown'
+        ? 'Zeige diesen Code, um die Verbindung abzuschließen.'
+        : 'Lass das andere Gerät diesen Code scannen. Tippe danach auf „QR-Code scannen“, um dessen Antwort-Code zu erfassen.',
+      scanHint: s.scanStatusText,
+      knownDevices,
+      hasKnownDevices: knownDevices.length > 0,
       connecting: s.connecting,
       connectingName: s.connectingName,
 
@@ -1135,19 +1317,20 @@ class Component extends DCLogic {
       onComposerKeyDown: (e) => {
         if (e.key === 'Enter') this.sendMessage();
       },
-      canSendOff: s.composerText.trim().length === 0 || !s.connected,
-      sendOpacity: s.composerText.trim().length === 0 || !s.connected ? 0.4 : 1,
+      canSendOff: s.composerText.trim().length === 0 || !activeDeviceId,
+      sendOpacity: s.composerText.trim().length === 0 || !activeDeviceId ? 0.4 : 1,
       sendMessage: () => this.sendMessage(),
       attachMenuOpen: s.attachMenuOpen,
       toggleAttachMenu: () => {
-        if (!s.connected) {
-          this.addToast('error', 'Nicht verbunden');
+        if (!activeDeviceId) {
+          this.addToast('error', 'Kein Gerät gekoppelt');
           return;
         }
         this.setState((st) => ({ attachMenuOpen: !st.attachMenuOpen }));
       },
-      attachImage: () => this.attach('image'),
-      attachFile: () => this.attach('file'),
+      attachImage: () => this.pickFile('image'),
+      attachFile: () => this.pickFile('file'),
+      onFileChosen: (e) => this.onFileChosen(e),
       chatDeviceOptions: s.devices.map((d) => ({ id: d.id, name: d.name })),
       chatTargetDeviceId: activeDeviceId || '',
       onChatTargetChange: (e) => {
@@ -1165,10 +1348,11 @@ class Component extends DCLogic {
       hasWaiting: transfersWaiting.length > 0,
       hasDone: transfersDone.length > 0,
       hasFailed: transfersFailed.length > 0,
-      simulateIncomingTransfer: () => this.simulateIncomingTransfer(),
+      noTransfers: s.transfers.length === 0,
       incomingDialog: s.incomingDialog,
-      incomingDialogName: s.incomingDialog ? s.incomingDialog.name : '',
-      incomingDialogSize: s.incomingDialog ? s.incomingDialog.size : '',
+      incomingDialogName: s.incomingDialog ? s.incomingDialog.meta.name : '',
+      incomingDialogSize: s.incomingDialog ? TransformerNet.fmtBytes(s.incomingDialog.meta.size) : '',
+      incomingDialogDeviceName: s.incomingDialog ? this.peerName(s.incomingDialog.peerId) : '',
       acceptIncoming: () => this.acceptIncoming(),
       rejectIncoming: () => this.rejectIncoming(),
 
@@ -1181,7 +1365,7 @@ class Component extends DCLogic {
       lightbox: s.lightbox,
       lightboxCount: images.length,
       lightboxPos: s.lightbox ? (s.lightbox.index % images.length) + 1 : 0,
-      lightboxName: s.lightbox ? images[s.lightbox.index % images.length].name : '',
+      lightboxName: s.lightbox && images.length ? images[s.lightbox.index % images.length].name : '',
       closeLightbox: () => this.setState({ lightbox: null }),
       lightboxPrev: () => this.navLightbox(-1),
       lightboxNext: () => this.navLightbox(1),
@@ -1190,8 +1374,12 @@ class Component extends DCLogic {
       previewIsImage: preview && preview.isImage,
       previewIsText: preview && preview.isText,
       previewIsOther: preview && preview.isOther,
+      downloadPreview: () => this.downloadPreview(),
+      previewNoUrl: !preview || !preview.url,
 
       settingsData: s.settings,
+      myDeviceName: s.myDeviceName,
+      onMyDeviceNameChange: (e) => this.setMyDeviceName(e.target.value),
       cycleFolder: () => this.cycleFolder(),
       autoAcceptTrackBg: s.settings.autoAccept ? 'var(--color-accent)' : 'var(--color-neutral-300)',
       autoAcceptKnobLeft: s.settings.autoAccept ? '20px' : '2px',
@@ -1205,10 +1393,13 @@ class Component extends DCLogic {
       setLightTheme: () => this.setState({ theme: 'light' }),
       setDarkTheme: () => this.setState({ theme: 'dark' }),
       devicesList,
+      hasDevices: devicesList.length > 0,
+      noDevices: devicesList.length === 0,
       renameValue: s.renameValue,
       onRenameChange: (e) => this.setState({ renameValue: e.target.value }),
       confirmRename: () => this.confirmRename(),
       askClearHistory: () => this.askClearHistory(),
+      addDevice: () => this.addDevice(),
       confirmDialog: s.confirmDialog,
       closeConfirm: () => this.setState({ confirmDialog: null }),
       runConfirm: () => this.runConfirm(),
@@ -1216,9 +1407,6 @@ class Component extends DCLogic {
       hasToasts: toasts.length > 0,
       toasts,
       tabs,
-
-      simulateIncomingMessage: () => this.simulateIncomingMessage(),
-      simulateConnectionLost: () => this.simulateConnectionLost(),
     };
   }
 }

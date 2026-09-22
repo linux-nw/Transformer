@@ -1,0 +1,1142 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<script src="./support.js"></script>
+</head>
+<body>
+<x-dc>
+<helmet>
+  <link rel="stylesheet" href="_ds/organic-7336f2c5-bc27-49df-838d-5bdedab1d2e6/styles.css">
+  <script src="_ds/organic-7336f2c5-bc27-49df-838d-5bdedab1d2e6/_ds_bundle.js"></script>
+  <style>
+    body{margin:0;background:var(--color-neutral-300);display:flex;justify-content:center;padding:32px 12px;min-height:100vh}
+    *::-webkit-scrollbar{width:0;height:0}
+    button{font:inherit;cursor:pointer;border:none;background:none;color:inherit}
+    input,select,textarea{font:inherit}
+    :root{--font-heading:var(--font-body);--font-heading-weight:700}
+    h1,h2,h3,h4,h5,h6{letter-spacing:normal}
+    [data-om-starter="android-frame"]{width:412px !important;height:892px !important;flex:none !important}
+  </style>
+</helmet>
+<x-import component-from-global-scope="AndroidDevice" from="./android-frame.jsx" hint-size="412px,892px" width="{{ phoneWidth }}" height="{{ phoneHeight }}" dark="{{ isDark }}">
+<div style="{{ rootStyle }}">
+
+  <div style="flex:none;display:flex;align-items:center;justify-content:space-between;gap:8px;padding:13px 18px;border-bottom:1px solid var(--color-divider)">
+    <h2 style="margin:0;font-size:19px">{{ headerTitle }}</h2>
+    <div style="display:flex;align-items:center;gap:8px">
+      <sc-if value="{{ paired }}" hint-placeholder-val="{{ false }}">
+        <span class="tag {{ connectedTagClass }}">{{ connectedLabel }}</span>
+      </sc-if>
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+        <select class="input" value="{{ chatTargetDeviceId }}" onChange="{{ onChatTargetChange }}" style="min-height:30px;max-width:130px;padding:3px 8px;font-size:12px">
+          <sc-for list="{{ chatDeviceOptions }}" as="dopt" hint-placeholder-count="2">
+            <option value="{{ dopt.id }}">{{ dopt.name }}</option>
+          </sc-for>
+        </select>
+      </sc-if>
+      <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+        <button aria-label="Mehrfachauswahl" onClick="{{ toggleSelectMode }}" style="width:32px;height:32px;display:flex;align-items:center;justify-content:center;border-radius:999px;color:var(--color-text)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px">
+            <rect x="4" y="4" width="16" height="16" rx="4"></rect>
+            <path d="M8 12l3 3 5-6"></path>
+          </svg>
+        </button>
+      </sc-if>
+    </div>
+  </div>
+
+  <sc-if value="{{ banner }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;top:60px;left:12px;right:12px;z-index:40;background:var(--color-surface);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:12px 14px;display:flex;align-items:flex-start;gap:10px" onClick="{{ openBannerTarget }}">
+      <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent)" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px;flex:none;margin-top:2px">
+        <path d="M7 9a5 5 0 0110 0v5l2 3H5l2-3z"></path>
+        <path d="M10 20a2 2 0 004 0"></path>
+      </svg>
+      <div style="flex:1;min-width:0">
+        <div style="font-size:13px;font-weight:600">{{ banner.title }}</div>
+        <div style="font-size:12px;opacity:0.75;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ banner.message }}</div>
+      </div>
+      <button aria-label="Schließen" onClick="{{ dismissBanner }}" style="width:22px;height:22px;flex:none;color:var(--color-text);opacity:0.6">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+      </button>
+    </div>
+  </sc-if>
+
+  <div style="flex:1;overflow:auto;position:relative;padding:16px 18px 90px">
+
+    <sc-if value="{{ isPairing }}" hint-placeholder-val="{{ true }}">
+      <div>
+        <h1 style="font-size:26px;margin:6px 0 4px">Gerät verbinden</h1>
+        <p style="font-size:13px;opacity:0.75;margin:0 0 16px">Verbinde dieses Handy mit deinem PC, um Dateien in beide Richtungen zu senden.</p>
+
+        <div class="seg" style="width:100%;margin-bottom:18px">
+          <label class="seg-opt" style="flex:1;justify-content:center">
+            <input type="radio" name="pairtab" checked="{{ isQrTab }}" onChange="{{ setQrTab }}"></input>
+            <span class="dot" style="display:none"></span>QR-Code
+          </label>
+          <label class="seg-opt" style="flex:1;justify-content:center">
+            <input type="radio" name="pairtab" checked="{{ isCodeTab }}" onChange="{{ setCodeTab }}"></input>
+            <span class="dot" style="display:none"></span>Code eingeben
+          </label>
+        </div>
+
+        <sc-if value="{{ isQrTab }}" hint-placeholder-val="{{ true }}">
+          <div style="position:relative;width:100%;aspect-ratio:1;background:var(--color-neutral-800);border-radius:var(--radius-lg);display:flex;align-items:center;justify-content:center;margin-bottom:14px;overflow:hidden">
+            <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-neutral-500)" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:46px;height:46px">
+              <rect x="3" y="7" width="18" height="13" rx="2"></rect>
+              <path d="M8 7l1.5-2.5h5L16 7"></path>
+              <circle cx="12" cy="13.5" r="3.2"></circle>
+            </svg>
+            <div style="position:absolute;top:18px;left:18px;width:28px;height:28px;border-top:3px solid var(--color-accent-300);border-left:3px solid var(--color-accent-300);border-radius:6px 0 0 0"></div>
+            <div style="position:absolute;top:18px;right:18px;width:28px;height:28px;border-top:3px solid var(--color-accent-300);border-right:3px solid var(--color-accent-300);border-radius:0 6px 0 0"></div>
+            <div style="position:absolute;bottom:18px;left:18px;width:28px;height:28px;border-bottom:3px solid var(--color-accent-300);border-left:3px solid var(--color-accent-300);border-radius:0 0 0 6px"></div>
+            <div style="position:absolute;bottom:18px;right:18px;width:28px;height:28px;border-bottom:3px solid var(--color-accent-300);border-right:3px solid var(--color-accent-300);border-radius:0 0 6px 0"></div>
+          </div>
+          <p class="text-muted" style="font-size:12px;text-align:center;margin:0 0 18px">Richte die Kamera auf den QR-Code auf transformer.app/pc</p>
+        </sc-if>
+
+        <sc-if value="{{ isCodeTab }}" hint-placeholder-val="{{ false }}">
+          <div class="field" style="margin-bottom:12px">
+            <label>6-stelliger Code vom PC</label>
+            <input class="input" value="{{ codeValue }}" onChange="{{ onCodeChange }}" placeholder="123 456" maxlength="6" style="text-align:center;font-size:20px;letter-spacing:6px;font-family:var(--font-heading)"></input>
+          </div>
+          <button class="btn btn-primary btn-block" disabled="{{ codeNotReady }}" onClick="{{ submitCode }}">Verbinden</button>
+        </sc-if>
+
+        <div class="hr"></div>
+        <h6 style="margin:0 0 10px;opacity:0.6">Im WLAN gefunden</h6>
+        <div style="display:flex;flex-direction:column;gap:8px">
+          <sc-for list="{{ foundDevices }}" as="d" hint-placeholder-count="2">
+            <button onClick="{{ d.connect }}" style="display:flex;align-items:center;gap:12px;padding:10px 12px;border-radius:var(--radius-md);background:var(--color-surface);text-align:left;width:100%">
+              <div style="width:38px;height:38px;border-radius:999px;background:var(--color-accent-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-700);flex:none">
+                <sc-if value="{{ d.isDesktop }}" hint-placeholder-val="{{ true }}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px"><rect x="3" y="4" width="18" height="12" rx="2"></rect><path d="M8 20h8M12 16v4"></path></svg>
+                </sc-if>
+                <sc-if value="{{ d.isLaptop }}" hint-placeholder-val="{{ false }}">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px"><rect x="4" y="5" width="16" height="10" rx="1.5"></rect><path d="M2 19h20"></path></svg>
+                </sc-if>
+              </div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:14px;font-weight:600">{{ d.name }}</div>
+                <div style="font-size:11px;opacity:0.65">{{ d.statusLabel }}</div>
+              </div>
+              <span class="{{ d.dotClass }}" style="width:8px;height:8px;border-radius:999px;flex:none"></span>
+            </button>
+          </sc-for>
+        </div>
+
+        <sc-if value="{{ connecting }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;inset:0;background:color-mix(in srgb, var(--color-bg) 88%, transparent);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px">
+            <div style="width:36px;height:36px;border-radius:999px;border:3px solid var(--color-accent-200);border-top-color:var(--color-accent);animation:spin 0.8s linear infinite"></div>
+            <div style="font-size:14px">Verbinde mit {{ connectingName }}…</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <sc-for list="{{ messages }}" as="m" hint-placeholder-count="4">
+          <sc-if value="{{ m.isDate }}" hint-placeholder-val="{{ false }}">
+            <div style="text-align:center;margin:14px 0"><span class="tag tag-neutral">{{ m.label }}</span></div>
+          </sc-if>
+          <sc-if value="{{ m.isBubble }}" hint-placeholder-val="{{ true }}">
+            <div style="display:flex;justify-content:{{ m.rowJustify }};margin-bottom:10px;gap:6px;align-items:flex-end">
+              <sc-if value="{{ selectMode }}" hint-placeholder-val="{{ false }}">
+                <button aria-label="Auswählen" onClick="{{ m.toggleSelected }}" style="width:22px;height:22px;border-radius:999px;border:1.5px solid var(--color-divider);flex:none;display:flex;align-items:center;justify-content:center;background:{{ m.checkBg }}">
+                  <sc-if value="{{ m.selected }}" hint-placeholder-val="{{ false }}">
+                    <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-bg)" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M5 13l4 4 10-10"></path></svg>
+                  </sc-if>
+                </button>
+              </sc-if>
+              <div style="max-width:78%;position:relative">
+                <div style="padding:9px 13px;border-radius:var(--radius-sm);background:{{ m.bubbleBg }};color:{{ m.bubbleColor }}" onContextMenu="{{ m.onMenu }}">
+                  <sc-if value="{{ m.isText }}" hint-placeholder-val="{{ true }}">
+                    <div style="font-size:14px;text-wrap:pretty">{{ m.text }}</div>
+                  </sc-if>
+                  <sc-if value="{{ m.isLink }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:10px;align-items:center;min-width:180px">
+                      <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-2-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-2-700);flex:none">
+                        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M9 15l6-6"></path><path d="M8 8l1.5-1.5a3.5 3.5 0 015 5L13 13"></path><path d="M16 16l-1.5 1.5a3.5 3.5 0 01-5-5L11 11"></path></svg>
+                      </div>
+                      <div style="min-width:0">
+                        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.title }}</div>
+                        <div style="font-size:11px;opacity:0.65">{{ m.domain }}</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.isFile }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:10px;align-items:center;min-width:180px">
+                      <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none">{{ m.ext }}</div>
+                      <div style="min-width:0">
+                        <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
+                        <div style="font-size:11px;opacity:0.65">{{ m.size }}</div>
+                      </div>
+                    </div>
+                  </sc-if>
+                  <sc-if value="{{ m.isImages }}" hint-placeholder-val="{{ false }}">
+                    <div style="display:flex;gap:5px">
+                      <sc-for list="{{ m.thumbs }}" as="th" hint-placeholder-count="2">
+                        <div style="width:76px;height:76px;border-radius:var(--radius-sm);background:var(--color-neutral-200);display:flex;align-items:center;justify-content:center;color:var(--color-text);flex:none">
+                          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M4 17l5-5 4 4 3-3 4 4"></path></svg>
+                        </div>
+                      </sc-for>
+                    </div>
+                  </sc-if>
+                  <div style="display:flex;justify-content:flex-end;align-items:center;gap:6px;margin-top:4px">
+                    <span style="font-size:10px;opacity:0.6">{{ m.time }}</span>
+                    <button aria-label="Optionen" onClick="{{ m.onMenu }}" style="width:16px;height:16px;display:flex;align-items:center;justify-content:center;opacity:0.55;color:currentColor;flex:none">
+                      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:11px;height:11px"><circle cx="12" cy="6" r="1.3"></circle><circle cx="12" cy="12" r="1.3"></circle><circle cx="12" cy="18" r="1.3"></circle></svg>
+                    </button>
+                  </div>
+                </div>
+                <sc-if value="{{ m.menuOpen }}" hint-placeholder-val="{{ false }}">
+                  <div style="position:absolute;{{ m.menuSide }}:0;top:100%;margin-top:4px;background:var(--color-surface);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:4px;z-index:20;display:flex;flex-direction:column;min-width:140px">
+                    <sc-if value="{{ m.canCopy }}" hint-placeholder-val="{{ false }}"><button onClick="{{ m.copy }}" style="text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">Kopieren</button></sc-if>
+                    <sc-if value="{{ m.canSave }}" hint-placeholder-val="{{ false }}"><button onClick="{{ m.save }}" style="text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">Speichern</button></sc-if>
+                    <sc-if value="{{ m.canOpen }}" hint-placeholder-val="{{ false }}"><button onClick="{{ m.open }}" style="text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">Öffnen</button></sc-if>
+                    <button onClick="{{ m.forward }}" style="text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">Weiterleiten</button>
+                    <button onClick="{{ m.remove }}" style="text-align:left;padding:8px 10px;border-radius:8px;font-size:13px;color:var(--color-accent-700)">Löschen</button>
+                  </div>
+                </sc-if>
+              </div>
+            </div>
+          </sc-if>
+        </sc-for>
+        <sc-if value="{{ hasMessages }}" hint-placeholder-val="{{ true }}"></sc-if>
+        <sc-if value="{{ noMessages }}" hint-placeholder-val="{{ false }}">
+          <div style="display:flex;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:60px 20px;opacity:0.6">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="width:40px;height:40px;margin-bottom:10px"><path d="M4 4h16v12H9l-5 4V4z"></path></svg>
+            <div style="font-size:13px">Noch keine Nachrichten</div>
+          </div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isTransfers }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <button class="btn btn-secondary btn-block" onClick="{{ simulateIncomingTransfer }}" style="margin-bottom:16px">Eingehende Übertragung simulieren</button>
+
+        <sc-if value="{{ hasActive }}" hint-placeholder-val="{{ true }}">
+          <h6 style="opacity:0.6;margin:0 0 8px">Läuft</h6>
+          <sc-for list="{{ transfersActive }}" as="t" hint-placeholder-count="1">
+            <div class="card elev-sm" style="margin-bottom:10px">
+              <div style="display:flex;gap:10px;align-items:center">
+                <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none">{{ t.ext }}</div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</div>
+                  <div style="font-size:11px;opacity:0.65">{{ t.size }} · {{ t.speed }}</div>
+                </div>
+                <button aria-label="Abbrechen" onClick="{{ t.cancel }}" style="width:26px;height:26px;border-radius:999px;background:var(--color-neutral-200);display:flex;align-items:center;justify-content:center;flex:none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+                </button>
+              </div>
+              <div style="height:6px;border-radius:999px;background:var(--color-neutral-200);overflow:hidden;margin-top:6px">
+                <div style="height:100%;background:var(--color-accent);border-radius:999px;width:{{ t.progressPct }}"></div>
+              </div>
+              <div style="font-size:11px;opacity:0.6;text-align:right">{{ t.progressLabel }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{ hasWaiting }}" hint-placeholder-val="{{ false }}">
+          <h6 style="opacity:0.6;margin:14px 0 8px">Wartend</h6>
+          <sc-for list="{{ transfersWaiting }}" as="t" hint-placeholder-count="1">
+            <div class="card" style="margin-bottom:10px;flex-direction:row;align-items:center;gap:10px">
+              <div style="width:34px;height:34px;border-radius:8px;background:var(--color-neutral-200);color:var(--color-neutral-700);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none">{{ t.ext }}</div>
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">{{ t.name }}</div>
+                <div style="font-size:11px;opacity:0.6">{{ t.size }} · Wartet…</div>
+              </div>
+              <button aria-label="Abbrechen" onClick="{{ t.cancel }}" style="width:26px;height:26px;border-radius:999px;background:var(--color-neutral-200);display:flex;align-items:center;justify-content:center;flex:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:12px;height:12px"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+              </button>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{ hasFailed }}" hint-placeholder-val="{{ false }}">
+          <h6 style="opacity:0.6;margin:14px 0 8px">Fehlgeschlagen</h6>
+          <sc-for list="{{ transfersFailed }}" as="t" hint-placeholder-count="1">
+            <div class="card" style="margin-bottom:10px">
+              <div style="display:flex;gap:10px;align-items:center">
+                <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;justify-content:center;flex:none">
+                  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 4l9 16H3z"></path><path d="M12 10v4M12 17h.01"></path></svg>
+                </div>
+                <div style="flex:1;min-width:0">
+                  <div style="font-size:13px;font-weight:600">{{ t.name }}</div>
+                  <div style="font-size:11px;color:var(--color-accent-700)">{{ t.reason }}</div>
+                </div>
+                <button class="btn btn-secondary" style="padding:6px 12px;font-size:12px" onClick="{{ t.retry }}">Erneut</button>
+              </div>
+            </div>
+          </sc-for>
+        </sc-if>
+
+        <sc-if value="{{ hasDone }}" hint-placeholder-val="{{ false }}">
+          <h6 style="opacity:0.6;margin:14px 0 8px">Fertig</h6>
+          <sc-for list="{{ transfersDone }}" as="t" hint-placeholder-count="1">
+            <div style="display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--color-divider)">
+              <div style="width:28px;height:28px;border-radius:999px;background:var(--color-accent-2-100);color:var(--color-accent-2-700);display:flex;align-items:center;justify-content:center;flex:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:13px;height:13px"><path d="M5 13l4 4 10-10"></path></svg>
+              </div>
+              <div style="flex:1;min-width:0;font-size:13px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ t.name }}</div>
+              <div style="font-size:11px;opacity:0.55">{{ t.size }}</div>
+            </div>
+          </sc-for>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isHistory }}" hint-placeholder-val="{{ false }}">
+      <div>
+        <div class="field" style="margin-bottom:12px">
+          <input class="input" value="{{ historySearch }}" onChange="{{ onSearchChange }}" placeholder="Suchen…"></input>
+        </div>
+        <div style="display:flex;gap:6px;overflow-x:auto;margin-bottom:14px;padding-bottom:2px">
+          <sc-for list="{{ historyFilters }}" as="f" hint-placeholder-count="5">
+            <button class="btn {{ f.btnClass }}" style="font-size:12px;padding:7px 13px;white-space:nowrap;flex:none" onClick="{{ f.select }}">{{ f.label }}</button>
+          </sc-for>
+        </div>
+        <sc-for list="{{ filteredHistory }}" as="h" hint-placeholder-count="4">
+          <button onClick="{{ h.open }}" style="display:flex;align-items:center;gap:12px;width:100%;text-align:left;padding:9px 0;border-bottom:1px solid var(--color-divider)">
+            <sc-if value="{{ h.isImage }}" hint-placeholder-val="{{ false }}">
+              <div style="width:42px;height:42px;border-radius:10px;background:var(--color-neutral-200);display:flex;align-items:center;justify-content:center;color:var(--color-text);flex:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M4 17l5-5 4 4 3-3 4 4"></path></svg>
+              </div>
+            </sc-if>
+            <sc-if value="{{ h.isFile }}" hint-placeholder-val="{{ true }}">
+              <div style="width:42px;height:42px;border-radius:10px;background:var(--color-neutral-200);color:var(--color-text);display:flex;align-items:center;justify-content:center;font-size:10px;font-weight:700;flex:none">{{ h.ext }}</div>
+            </sc-if>
+            <sc-if value="{{ h.isLink }}" hint-placeholder-val="{{ false }}">
+              <div style="width:42px;height:42px;border-radius:10px;background:var(--color-neutral-200);color:var(--color-text);display:flex;align-items:center;justify-content:center;flex:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M9 15l6-6"></path><path d="M8 8l1.5-1.5a3.5 3.5 0 015 5L13 13"></path><path d="M16 16l-1.5 1.5a3.5 3.5 0 01-5-5L11 11"></path></svg>
+              </div>
+            </sc-if>
+            <sc-if value="{{ h.isText }}" hint-placeholder-val="{{ false }}">
+              <div style="width:42px;height:42px;border-radius:10px;background:var(--color-neutral-200);color:var(--color-text);display:flex;align-items:center;justify-content:center;flex:none">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:17px;height:17px"><path d="M6 3h9l4 4v14H6z"></path><path d="M15 3v4h4"></path></svg>
+              </div>
+            </sc-if>
+            <div style="flex:1;min-width:0">
+              <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ h.name }}</div>
+              <div style="font-size:11px;opacity:0.6">{{ h.meta }}</div>
+            </div>
+          </button>
+        </sc-for>
+        <sc-if value="{{ hasHistory }}" hint-placeholder-val="{{ true }}"></sc-if>
+        <sc-if value="{{ noHistory }}" hint-placeholder-val="{{ false }}">
+          <div style="text-align:center;padding:50px 10px;opacity:0.55;font-size:13px">Keine Einträge gefunden</div>
+        </sc-if>
+      </div>
+    </sc-if>
+
+    <sc-if value="{{ isSettings }}" hint-placeholder-val="{{ false }}">
+      <div style="display:flex;flex-direction:column;gap:6px">
+        <h6 style="opacity:0.6;margin:4px 0 2px">Übertragung</h6>
+        <button onClick="{{ cycleFolder }}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider);text-align:left;width:100%">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M4 6h6l2 2h8v11H4z"></path></svg>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:13px;font-weight:600">Auto-Save-Ziel</div>
+            <div style="font-size:11px;opacity:0.6">{{ settingsData.autoSaveFolder }}</div>
+          </div>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px;opacity:0.5;flex:none"><path d="M9 6l6 6-6 6"></path></svg>
+        </button>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M5 13l4 4 10-10"></path></svg>
+          <div style="flex:1;font-size:13px;font-weight:600">Automatisch annehmen</div>
+          <button aria-label="Automatisch annehmen umschalten" onClick="{{ toggleAutoAccept }}" style="width:42px;height:24px;border-radius:999px;background:{{ autoAcceptTrackBg }};position:relative;flex:none">
+            <span style="position:absolute;top:2px;left:{{ autoAcceptKnobLeft }};width:20px;height:20px;border-radius:999px;background:#fff;transition:left 0.15s"></span>
+          </button>
+        </div>
+
+        <h6 style="opacity:0.6;margin:14px 0 2px">Geräte</h6>
+        <sc-for list="{{ devicesList }}" as="dv" hint-placeholder-count="2">
+          <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+            <span style="width:8px;height:8px;border-radius:999px;flex:none;background:{{ dv.dotColor }}"></span>
+            <sc-if value="{{ dv.isRenaming }}" hint-placeholder-val="{{ false }}">
+              <input class="input" value="{{ renameValue }}" onChange="{{ onRenameChange }}" style="flex:1;padding:4px 8px;min-height:28px"></input>
+              <button aria-label="Speichern" onClick="{{ confirmRename }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M5 13l4 4 10-10"></path></svg></button>
+            </sc-if>
+            <sc-if value="{{ dv.isNotRenaming }}" hint-placeholder-val="{{ true }}">
+              <div style="flex:1;min-width:0">
+                <div style="font-size:13px;font-weight:600">{{ dv.name }}</div>
+                <div style="font-size:11px;opacity:0.6">{{ dv.statusLabel }}</div>
+              </div>
+              <button aria-label="Umbenennen" onClick="{{ dv.rename }}" style="width:26px;height:26px;flex:none;opacity:0.6"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 20l1-4 11-11 3 3-11 11z"></path></svg></button>
+              <button aria-label="Entkoppeln" onClick="{{ dv.unlink }}" style="width:26px;height:26px;flex:none;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg></button>
+            </sc-if>
+          </div>
+        </sc-for>
+
+        <h6 style="opacity:0.6;margin:14px 0 2px">Allgemein</h6>
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M7 9a5 5 0 0110 0v5l2 3H5l2-3z"></path><path d="M10 20a2 2 0 004 0"></path></svg>
+          <div style="flex:1;font-size:13px;font-weight:600">Benachrichtigungen</div>
+          <button aria-label="Benachrichtigungen umschalten" onClick="{{ toggleNotifications }}" style="width:42px;height:24px;border-radius:999px;background:{{ notifTrackBg }};position:relative;flex:none">
+            <span style="position:absolute;top:2px;left:{{ notifKnobLeft }};width:20px;height:20px;border-radius:999px;background:#fff;transition:left 0.15s"></span>
+          </button>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z"></path></svg>
+          <div style="flex:1;font-size:13px;font-weight:600">Darstellung</div>
+          <div class="seg">
+            <label class="seg-opt"><input type="radio" name="theme" checked="{{ isLightTheme }}" onChange="{{ setLightTheme }}"></input><span class="dot" style="display:none"></span>Hell</label>
+            <label class="seg-opt"><input type="radio" name="theme" checked="{{ isDark }}" onChange="{{ setDarkTheme }}"></input><span class="dot" style="display:none"></span>Dunkel</label>
+          </div>
+        </div>
+
+        <div style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-accent-700)" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M12 11v2a5 5 0 01-1 3"></path><path d="M8 12a4 4 0 018 0v1a8 8 0 01-.5 3"></path><path d="M5 12a7 7 0 0114 0"></path><path d="M12 21c-3-1-5-4-5-8"></path></svg>
+          <div style="flex:1;font-size:13px;font-weight:600">Biometrisch sperren</div>
+          <button aria-label="Biometrische Sperre umschalten" onClick="{{ toggleBiometricLock }}" style="width:42px;height:24px;border-radius:999px;background:{{ biometricTrackBg }};position:relative;flex:none">
+            <span style="position:absolute;top:2px;left:{{ biometricKnobLeft }};width:20px;height:20px;border-radius:999px;background:#fff;transition:left 0.15s"></span>
+          </button>
+        </div>
+
+        <button onClick="{{ askClearHistory }}" style="display:flex;align-items:center;gap:12px;padding:10px 0;border-bottom:1px solid var(--color-divider);text-align:left;width:100%;color:var(--color-accent-700)">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:19px;height:19px;flex:none"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg>
+          <div style="font-size:13px;font-weight:600">Verlauf löschen</div>
+        </button>
+
+        <div style="display:flex;align-items:center;gap:10px;padding:14px 0;opacity:0.6">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px;flex:none"><rect x="5" y="11" width="14" height="9" rx="2"></rect><path d="M8 11V7a4 4 0 118 0v4"></path></svg>
+          <div style="font-size:12px">Ende-zu-Ende-verschlüsselt</div>
+        </div>
+
+        <div style="margin-top:10px;padding:12px;border-radius:var(--radius-md);border:1px dashed var(--color-divider)">
+          <h6 style="opacity:0.55;margin:0 0 8px">Vorschau-Ereignisse</h6>
+          <div style="display:flex;flex-direction:column;gap:6px">
+            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateIncomingMessage }}">Nachricht empfangen simulieren</button>
+            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateIncomingTransfer }}">Übertragung empfangen simulieren</button>
+            <button class="btn btn-ghost" style="justify-content:flex-start;padding:6px" onClick="{{ simulateConnectionLost }}">Verbindung verloren simulieren</button>
+          </div>
+        </div>
+      </div>
+    </sc-if>
+
+  </div>
+
+  <sc-if value="{{ isHome }}" hint-placeholder-val="{{ false }}">
+    <sc-if value="{{ selectMode }}" hint-placeholder-val="{{ false }}">
+      <div style="flex:none;display:flex;align-items:center;gap:10px;padding:10px 16px;border-top:1px solid var(--color-divider);background:var(--color-surface)">
+        <button aria-label="Auswahl beenden" onClick="{{ toggleSelectMode }}" style="width:26px;height:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        <div style="flex:1;font-size:13px">{{ selectedCount }} ausgewählt</div>
+        <button aria-label="Weiterleiten" onClick="{{ forwardSelected }}" style="width:30px;height:30px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M15 8l5 4-5 4"></path><path d="M4 18v-3a5 5 0 015-5h11"></path></svg></button>
+        <button aria-label="Löschen" onClick="{{ deleteSelected }}" style="width:30px;height:30px;color:var(--color-accent-700)"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M4 7h16"></path><path d="M9 7V4h6v3"></path><path d="M6 7l1 13h10l1-13"></path></svg></button>
+      </div>
+    </sc-if>
+    <sc-if value="{{ selectModeOff }}" hint-placeholder-val="{{ true }}">
+      <div style="flex:none;position:relative">
+        <sc-if value="{{ attachMenuOpen }}" hint-placeholder-val="{{ false }}">
+          <div style="position:absolute;bottom:100%;left:16px;margin-bottom:6px;background:var(--color-surface);border-radius:var(--radius-md);box-shadow:var(--shadow-lg);padding:4px;display:flex;flex-direction:column;min-width:140px">
+            <button onClick="{{ attachImage }}" style="display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M4 17l5-5 4 4 3-3 4 4"></path></svg>Bild
+            </button>
+            <button onClick="{{ attachFile }}" style="display:flex;align-items:center;gap:8px;text-align:left;padding:8px 10px;border-radius:8px;font-size:13px">
+              <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" style="width:15px;height:15px"><path d="M6 3h9l4 4v14H6z"></path><path d="M15 3v4h4"></path></svg>Datei
+            </button>
+          </div>
+        </sc-if>
+        <div style="display:flex;align-items:center;gap:8px;padding:10px 16px;border-top:1px solid var(--color-divider);background:var(--color-surface)">
+          <button aria-label="Anhang" onClick="{{ toggleAttachMenu }}" style="width:34px;height:34px;flex:none;color:var(--color-accent-700)">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M8 12l6-6a3 3 0 114 4l-8 8a5 5 0 01-7-7l7-7"></path></svg>
+          </button>
+          <input class="input" value="{{ composerText }}" onChange="{{ onComposerChange }}" onKeyDown="{{ onComposerKeyDown }}" placeholder="Nachricht oder Link…" style="flex:1"></input>
+          <button aria-label="Senden" disabled="{{ canSendOff }}" onClick="{{ sendMessage }}" style="width:34px;height:34px;flex:none;border-radius:999px;background:var(--color-accent);color:var(--color-bg);display:flex;align-items:center;justify-content:center;opacity:{{ sendOpacity }}">
+            <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M12 20V4"></path><path d="M5 11l7-7 7 7"></path></svg>
+          </button>
+        </div>
+      </div>
+    </sc-if>
+  </sc-if>
+
+  <div style="flex:none;display:flex;border-top:1px solid var(--color-divider);background:var(--color-surface)">
+    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+      <button onClick="{{ tb.go }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 11px;color:{{ tb.color }}">
+        <sc-if value="{{ tb.isHome }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path></svg></sc-if>
+        <sc-if value="{{ tb.isTransfers }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></sc-if>
+        <sc-if value="{{ tb.isHistory }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></sc-if>
+        <sc-if value="{{ tb.isSettings }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M4 6h10"></path><circle cx="17" cy="6" r="2"></circle><path d="M4 12h4"></path><circle cx="11" cy="12" r="2"></circle><path d="M15 12h5"></path><path d="M4 18h10"></path><circle cx="17" cy="18" r="2"></circle></svg></sc-if>
+        <span style="font-size:10px;font-weight:600">{{ tb.label }}</span>
+      </button>
+    </sc-for>
+  </div>
+
+  <sc-if value="{{ hasToasts }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;bottom:86px;left:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:50">
+      <sc-for list="{{ toasts }}" as="ts" hint-placeholder-count="1">
+        <div style="padding:10px 14px;border-radius:var(--radius-md);background:{{ ts.bg }};color:{{ ts.color }};font-size:13px;box-shadow:var(--shadow-lg)">{{ ts.message }}</div>
+      </sc-for>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ incomingDialog }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:absolute">
+      <div class="dialog">
+        <div class="dialog-title">Eingehende Übertragung</div>
+        <div class="dialog-body">{{ incomingDialogName }} von {{ deviceName }} · {{ incomingDialogSize }}</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ rejectIncoming }}">Ablehnen</button>
+          <button class="btn btn-primary" onClick="{{ acceptIncoming }}">Annehmen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ confirmDialog }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:absolute">
+      <div class="dialog">
+        <div class="dialog-title">{{ confirmDialog.title }}</div>
+        <div class="dialog-body">{{ confirmDialog.body }}</div>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ closeConfirm }}">Abbrechen</button>
+          <button class="btn btn-primary" style="background:var(--color-accent-700)" onClick="{{ runConfirm }}">{{ confirmDialog.confirmLabel }}</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ lightbox }}" hint-placeholder-val="{{ false }}">
+    <div style="position:absolute;inset:0;background:rgba(20,18,16,0.92);display:flex;flex-direction:column;z-index:60">
+      <div style="display:flex;justify-content:space-between;align-items:center;padding:14px 16px;color:#fff">
+        <span style="font-size:12px;opacity:0.7">{{ lightboxPos }} / {{ lightboxCount }}</span>
+        <button aria-label="Schließen" onClick="{{ closeLightbox }}" style="color:#fff;width:26px;height:26px"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:18px;height:18px"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+      </div>
+      <div style="flex:1;display:flex;align-items:center;justify-content:center;padding:0 14px;gap:10px">
+        <button aria-label="Zurück" onClick="{{ lightboxPrev }}" style="color:#fff;width:34px;height:34px;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M15 6l-6 6 6 6"></path></svg></button>
+        <div style="flex:1;aspect-ratio:1;max-width:280px;border-radius:14px;background:var(--color-neutral-300);display:flex;align-items:center;justify-content:center">
+          <svg viewBox="0 0 24 24" fill="none" stroke="var(--color-text)" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" style="width:48px;height:48px;opacity:0.85"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M4 17l5-5 4 4 3-3 4 4"></path></svg>
+        </div>
+        <button aria-label="Weiter" onClick="{{ lightboxNext }}" style="color:#fff;width:34px;height:34px;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:22px;height:22px"><path d="M9 6l6 6-6 6"></path></svg></button>
+      </div>
+      <div style="text-align:center;color:#fff;font-size:12px;opacity:0.75;padding-bottom:16px">{{ lightboxName }}</div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ preview }}" hint-placeholder-val="{{ false }}">
+    <div class="dialog-backdrop" style="position:absolute">
+      <div class="dialog">
+        <div style="display:flex;justify-content:space-between;align-items:flex-start">
+          <div class="dialog-title">{{ preview.name }}</div>
+          <button aria-label="Schließen" onClick="{{ closePreview }}" style="width:24px;height:24px;flex:none"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M6 6l12 12M18 6L6 18"></path></svg></button>
+        </div>
+        <sc-if value="{{ previewIsImage }}" hint-placeholder-val="{{ false }}">
+          <div style="aspect-ratio:1;border-radius:12px;background:var(--color-neutral-200)"></div>
+        </sc-if>
+        <sc-if value="{{ previewIsText }}" hint-placeholder-val="{{ false }}">
+          <div class="dialog-body" style="background:var(--color-bg);padding:12px;border-radius:8px">{{ preview.name }}</div>
+        </sc-if>
+        <sc-if value="{{ previewIsOther }}" hint-placeholder-val="{{ true }}">
+          <div style="display:flex;flex-direction:column;align-items:center;gap:8px;padding:24px 0">
+            <div style="width:56px;height:56px;border-radius:12px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;justify-content:center;font-size:12px;font-weight:700">{{ preview.ext }}</div>
+            <div class="dialog-body">{{ preview.meta }}</div>
+          </div>
+        </sc-if>
+        <div class="dialog-actions">
+          <button class="btn btn-secondary" onClick="{{ closePreview }}">Schließen</button>
+          <button class="btn btn-primary">Öffnen</button>
+        </div>
+      </div>
+    </div>
+  </sc-if>
+
+  <sc-if value="{{ attachMenuOpen }}" hint-placeholder-val="{{ false }}">
+    <div onClick="{{ toggleAttachMenu }}" style="position:absolute;inset:0;z-index:5"></div>
+  </sc-if>
+
+</div>
+</x-import>
+<helmet>
+  <style>@keyframes spin{to{transform:rotate(360deg)}}</style>
+</helmet>
+
+</x-dc>
+<script type="text/x-dc" data-dc-script data-props="{
+  &quot;$preview&quot;: {&quot;width&quot;: 460, &quot;height&quot;: 940},
+  &quot;theme&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;light&quot;, &quot;tsType&quot;: &quot;'light' | 'dark'&quot;, &quot;options&quot;: [&quot;light&quot;, &quot;dark&quot;], &quot;section&quot;: &quot;Verhalten&quot;},
+  &quot;autoAccept&quot;: {&quot;editor&quot;: &quot;boolean&quot;, &quot;default&quot;: true, &quot;tsType&quot;: &quot;boolean&quot;, &quot;section&quot;: &quot;Verhalten&quot;},
+  &quot;startScreen&quot;: {&quot;editor&quot;: &quot;enum&quot;, &quot;default&quot;: &quot;pairing&quot;, &quot;tsType&quot;: &quot;'pairing' | 'home'&quot;, &quot;options&quot;: [&quot;pairing&quot;, &quot;home&quot;], &quot;section&quot;: &quot;Verhalten&quot;}
+}">
+class Component extends DCLogic {
+  state = {
+    screen: this.props.startScreen || 'pairing',
+    theme: this.props.theme || 'light',
+    pairingTab: 'qr',
+    codeValue: '',
+    connecting: false,
+    connectingName: '',
+    paired: false,
+    connected: false,
+    device: null,
+    selectMode: false,
+    selectedIds: [],
+    contextMenuFor: null,
+    attachMenuOpen: false,
+    composerText: '',
+    messages: [
+      { id: 'm1', kind: 'date', label: 'Heute' },
+      { id: 'm2', kind: 'text', dir: 'in', text: 'Hey, schick mir kurz die Präsentation?', time: '09:12' },
+      { id: 'm3', kind: 'text', dir: 'out', text: 'Klar, einen Moment.', time: '09:13' },
+      { id: 'm4', kind: 'file', dir: 'out', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', time: '09:14' },
+      { id: 'm5', kind: 'link', dir: 'in', title: 'Figma – Projektdateien', domain: 'figma.com', time: '09:20' },
+      { id: 'm6', kind: 'images', dir: 'in', count: 2, time: '09:24' },
+      { id: 'm7', kind: 'text', dir: 'out', text: 'Sieht gut aus, danke!', time: '09:25' },
+    ],
+    transfers: [
+      { id: 't1', name: 'Urlaubsfotos.zip', size: '128 MB', ext: 'ZIP', dir: 'send', status: 'active', progress: 62, speed: '11.4 MB/s' },
+      { id: 't2', name: 'Notizen.txt', size: '4 KB', ext: 'TXT', dir: 'receive', status: 'waiting', progress: 0 },
+      { id: 't3', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', dir: 'send', status: 'done', progress: 100 },
+      { id: 't4', name: 'Rechnung_September.pdf', size: '220 KB', ext: 'PDF', dir: 'receive', status: 'done', progress: 100 },
+      { id: 't5', name: 'Video_Projekt.mp4', size: '640 MB', ext: 'MP4', dir: 'send', status: 'failed', progress: 34, reason: 'Verbindung unterbrochen' },
+    ],
+    incomingDialog: null,
+    toasts: [],
+    banner: null,
+    confirmDialog: null,
+    historyFilter: 'all',
+    historySearch: '',
+    lightbox: null,
+    preview: null,
+    settings: {
+      autoSaveFolder: 'Downloads/Transformer',
+      autoAccept: this.props.autoAccept !== undefined ? this.props.autoAccept : true,
+      notifications: true,
+      biometricLock: false,
+    },
+    devices: [
+      { id: 'd1', name: 'Büro-PC', type: 'desktop', status: 'online' },
+      { id: 'd2', name: 'Homeoffice-Laptop', type: 'laptop', status: 'offline', lastSeen: 'vor 2 Std.' },
+    ],
+    renameDeviceId: null,
+    renameValue: '',
+    chatTargetDeviceId: null,
+  };
+
+  componentDidMount() {
+    this._interval = setInterval(() => this.tick(), 900);
+    this._keyHandler = (e) => {
+      if (!this.state.lightbox) return;
+      if (e.key === 'Escape') this.closeLightbox();
+      if (e.key === 'ArrowRight') this.navLightbox(1);
+      if (e.key === 'ArrowLeft') this.navLightbox(-1);
+    };
+    document.addEventListener('keydown', this._keyHandler);
+  }
+  componentWillUnmount() {
+    clearInterval(this._interval);
+    document.removeEventListener('keydown', this._keyHandler);
+  }
+
+  tick() {
+    this.setState((s) => {
+      let transfers = s.transfers.map((t) => {
+        if (t.status !== 'active') return t;
+        const progress = Math.min(100, t.progress + 4 + Math.random() * 9);
+        return { ...t, progress, status: progress >= 100 ? 'done' : 'active' };
+      });
+      if (!transfers.some((t) => t.status === 'active')) {
+        const idx = transfers.findIndex((t) => t.status === 'waiting');
+        if (idx >= 0) {
+          const speed = (8 + Math.random() * 6).toFixed(1) + ' MB/s';
+          transfers = transfers.map((t, i) => (i === idx ? { ...t, status: 'active', speed } : t));
+        }
+      }
+      return { transfers };
+    });
+  }
+
+  addToast(type, message) {
+    const id = 'toast-' + Math.random().toString(36).slice(2);
+    this.setState((s) => ({ toasts: [...s.toasts, { id, type, message }] }));
+    setTimeout(() => this.setState((s) => ({ toasts: s.toasts.filter((t) => t.id !== id) })), 3200);
+  }
+
+  now() {
+    const d = new Date();
+    return String(d.getHours()).padStart(2, '0') + ':' + String(d.getMinutes()).padStart(2, '0');
+  }
+
+  goTo(screen) {
+    this.setState({ screen, selectMode: false, selectedIds: [], contextMenuFor: null });
+  }
+
+  doConnect(d) {
+    this.setState({ connecting: true, connectingName: d.name });
+    setTimeout(() => {
+      this.setState({
+        connecting: false,
+        paired: true,
+        connected: true,
+        screen: 'home',
+        device: { id: d.id, name: d.name, type: d.type },
+      });
+      this.addToast('success', 'Mit ' + d.name + ' verbunden');
+    }, 1400);
+  }
+
+  submitCode() {
+    if (this.state.codeValue.length !== 6) return;
+    this.doConnect({ id: 'code-device', name: 'PC-' + this.state.codeValue.slice(0, 3), type: 'desktop' });
+  }
+
+  sendMessage() {
+    const text = this.state.composerText.trim();
+    if (!text) return;
+    const isLink = /^https?:\/\//i.test(text) || /^[\w.-]+\.[a-z]{2,}\//i.test(text);
+    const id = 'm-' + Date.now();
+    const time = this.now();
+    let entry;
+    if (isLink) {
+      const domain = text.replace(/^https?:\/\//i, '').split('/')[0];
+      entry = { id, kind: 'link', dir: 'out', title: 'Geteilter Link', domain, time };
+    } else {
+      entry = { id, kind: 'text', dir: 'out', text, time };
+    }
+    this.setState((s) => ({ messages: [...s.messages, entry], composerText: '' }));
+  }
+
+  attach(kind) {
+    const id = 'm-' + Date.now();
+    const time = this.now();
+    const entry =
+      kind === 'image'
+        ? { id, kind: 'images', dir: 'out', count: 1, time }
+        : { id, kind: 'file', dir: 'out', name: 'Scan_' + this.now().replace(':', '') + '.pdf', size: '1.1 MB', ext: 'PDF', time };
+    this.setState((s) => ({ messages: [...s.messages, entry], attachMenuOpen: false }));
+  }
+
+  toggleSelectMode() {
+    this.setState((s) => ({ selectMode: !s.selectMode, selectedIds: [] }));
+  }
+  toggleSelect(id) {
+    this.setState((s) => ({
+      selectedIds: s.selectedIds.includes(id) ? s.selectedIds.filter((x) => x !== id) : [...s.selectedIds, id],
+    }));
+  }
+  deleteSelected() {
+    this.setState((s) => ({
+      messages: s.messages.filter((m) => !s.selectedIds.includes(m.id)),
+      selectedIds: [],
+      selectMode: false,
+    }));
+  }
+  forwardSelected() {
+    this.addToast('info', this.state.selectedIds.length + ' Element(e) weitergeleitet');
+    this.setState({ selectedIds: [], selectMode: false });
+  }
+
+  openContextMenu(id) {
+    this.setState((s) => ({ contextMenuFor: s.contextMenuFor === id ? null : id }));
+  }
+  menuAction(action, item) {
+    this.setState({ contextMenuFor: null });
+    if (action === 'delete') {
+      this.setState((s) => ({ messages: s.messages.filter((m) => m.id !== item.id) }));
+      return;
+    }
+    if (action === 'copy') this.addToast('success', 'Kopiert');
+    if (action === 'save') this.addToast('success', 'Gespeichert');
+    if (action === 'open') this.addToast('info', 'Öffnen…');
+    if (action === 'forward') this.addToast('info', 'Weitergeleitet');
+  }
+
+  cancelTransfer(id) {
+    this.setState((s) => ({
+      transfers: s.transfers.map((t) => (t.id === id ? { ...t, status: 'failed', reason: 'Vom Nutzer abgebrochen' } : t)),
+    }));
+  }
+  retryTransfer(id) {
+    this.setState((s) => ({
+      transfers: s.transfers.map((t) => (t.id === id ? { ...t, status: 'waiting', progress: 0, reason: null } : t)),
+    }));
+  }
+
+  simulateIncomingTransfer() {
+    const item = { id: 't-' + Date.now(), name: 'Skizze_Entwurf.png', size: '3.4 MB', ext: 'PNG', dir: 'receive', status: 'active', progress: 0, speed: '6.2 MB/s' };
+    if (this.state.settings.autoAccept) {
+      this.setState((s) => ({ transfers: [...s.transfers, item] }));
+      this.addToast('info', 'Empfange ' + item.name);
+      if (this.state.screen !== 'transfers') this.setState({ banner: { title: 'Neue Übertragung', message: item.name } });
+    } else {
+      this.setState({ incomingDialog: item });
+    }
+  }
+  acceptIncoming() {
+    const item = this.state.incomingDialog;
+    this.setState((s) => ({ transfers: [...s.transfers, { ...item, status: 'active', progress: 0 }], incomingDialog: null }));
+    this.addToast('success', 'Übertragung angenommen');
+  }
+  rejectIncoming() {
+    this.addToast('info', 'Übertragung abgelehnt');
+    this.setState({ incomingDialog: null });
+  }
+
+  simulateIncomingMessage() {
+    const id = 'm-' + Date.now();
+    const entry = { id, kind: 'text', dir: 'in', text: 'Kannst du mir das Update noch heute schicken?', time: this.now() };
+    this.setState((s) => ({ messages: [...s.messages, entry] }));
+    if (this.state.screen !== 'home') {
+      const deviceName = (this.state.device && this.state.device.name) || 'Nachricht';
+      this.setState({ banner: { title: deviceName, message: entry.text } });
+    }
+  }
+  simulateConnectionLost() {
+    this.setState({ connected: false });
+    this.addToast('error', 'Verbindung verloren');
+    setTimeout(() => {
+      this.setState({ connected: true });
+      this.addToast('success', 'Wieder verbunden');
+    }, 2500);
+  }
+
+  openLightbox(index) {
+    this.setState({ lightbox: { index } });
+  }
+  navLightbox(delta) {
+    this.setState((s) => {
+      if (!s.lightbox) return {};
+      const total = this.buildHistory().filter((h) => h.type === 'image').length;
+      const idx = (s.lightbox.index + delta + total) % total;
+      return { lightbox: { index: idx } };
+    });
+  }
+
+  cycleFolder() {
+    const opts = ['Downloads/Transformer', 'Bilder/Transformer', 'Dokumente/Transformer'];
+    const idx = opts.indexOf(this.state.settings.autoSaveFolder);
+    this.setState((s) => ({ settings: { ...s.settings, autoSaveFolder: opts[(idx + 1) % opts.length] } }));
+  }
+  startRename(d) {
+    this.setState({ renameDeviceId: d.id, renameValue: d.name });
+  }
+  confirmRename() {
+    this.setState((s) => ({
+      devices: s.devices.map((d) => (d.id === s.renameDeviceId ? { ...d, name: s.renameValue || d.name } : d)),
+      renameDeviceId: null,
+    }));
+  }
+  askUnlinkDevice(d) {
+    this.setState({
+      confirmDialog: {
+        title: 'Gerät entkoppeln',
+        body: '"' + d.name + '" wird entkoppelt und muss neu verbunden werden.',
+        confirmLabel: 'Entkoppeln',
+        onConfirm: () => {
+          this.setState((s) => ({ devices: s.devices.filter((x) => x.id !== d.id) }));
+          this.addToast('info', d.name + ' entkoppelt');
+        },
+      },
+    });
+  }
+  askClearHistory() {
+    this.setState({
+      confirmDialog: {
+        title: 'Verlauf löschen',
+        body: 'Der gesamte Übertragungsverlauf wird unwiderruflich gelöscht.',
+        confirmLabel: 'Löschen',
+        onConfirm: () => {
+          this.setState({ transfers: [], messages: [] });
+          this.addToast('success', 'Verlauf gelöscht');
+        },
+      },
+    });
+  }
+  runConfirm() {
+    const c = this.state.confirmDialog;
+    if (c && c.onConfirm) c.onConfirm();
+    this.setState({ confirmDialog: null });
+  }
+
+  buildHistory() {
+    return [
+      { id: 'h1', type: 'image', name: 'Foto_Strand.jpg', meta: 'Heute · 2.1 MB' },
+      { id: 'h2', type: 'image', name: 'Screenshot_Team.png', meta: 'Heute · 640 KB' },
+      { id: 'h3', type: 'file', name: 'Praesentation_Q3.pdf', ext: 'PDF', meta: 'Heute · 4.2 MB' },
+      { id: 'h4', type: 'file', name: 'Rechnung_September.pdf', ext: 'PDF', meta: 'Gestern · 220 KB' },
+      { id: 'h5', type: 'link', name: 'figma.com/projekt', meta: 'Gestern' },
+      { id: 'h6', type: 'text', name: 'Klar, einen Moment.', meta: 'Heute · 09:13' },
+      { id: 'h7', type: 'image', name: 'Skizze_Entwurf.png', meta: 'Vorgestern · 3.4 MB' },
+      { id: 'h8', type: 'image', name: 'Team_Offsite.jpg', meta: 'Vorgestern · 5.0 MB' },
+    ];
+  }
+
+  renderVals() {
+    const s = this.state;
+
+    const themeVars =
+      s.theme === 'dark'
+        ? {
+            '--color-bg': 'var(--color-neutral-900)',
+            '--color-surface': 'var(--color-neutral-800)',
+            '--color-text': 'var(--color-neutral-100)',
+            '--color-divider': 'color-mix(in srgb, var(--color-neutral-100) 18%, transparent)',
+          }
+        : {};
+    const rootStyle = {
+      height: '100%',
+      display: 'flex',
+      flexDirection: 'column',
+      fontFamily: 'var(--font-body)',
+      background: 'var(--color-bg)',
+      color: 'var(--color-text)',
+      position: 'relative',
+      ...themeVars,
+    };
+
+    const messages = s.messages.map((m) => {
+      const isBubble = m.kind !== 'date';
+      const isOut = m.dir === 'out';
+      const canCopy = m.kind === 'text' || m.kind === 'link';
+      const canSave = m.kind === 'file' || m.kind === 'images';
+      const canOpen = m.kind === 'link' || m.kind === 'file' || m.kind === 'images';
+      return {
+        ...m,
+        isBubble,
+        isText: m.kind === 'text',
+        isLink: m.kind === 'link',
+        isFile: m.kind === 'file',
+        isImages: m.kind === 'images',
+        isDate: m.kind === 'date',
+        rowJustify: isOut ? 'flex-end' : 'flex-start',
+        kebabSide: isOut ? 'left' : 'right',
+        menuSide: isOut ? 'right' : 'left',
+        bubbleBg: m.kind === 'text' && isOut ? 'var(--color-accent-700)' : 'var(--color-surface)',
+        bubbleColor: m.kind === 'text' && isOut ? 'var(--color-bg)' : 'var(--color-text)',
+        selected: s.selectedIds.includes(m.id),
+        checkBg: s.selectedIds.includes(m.id) ? 'var(--color-accent)' : 'transparent',
+        menuOpen: s.contextMenuFor === m.id,
+        thumbs: m.kind === 'images' ? Array.from({ length: m.count || 1 }) : [],
+        canCopy,
+        canSave,
+        canOpen,
+        toggleSelected: () => this.toggleSelect(m.id),
+        onMenu: (e) => {
+          if (e && e.preventDefault) e.preventDefault();
+          this.openContextMenu(m.id);
+        },
+        copy: () => this.menuAction('copy', m),
+        save: () => this.menuAction('save', m),
+        open: () => this.menuAction('open', m),
+        forward: () => this.menuAction('forward', m),
+        remove: () => this.menuAction('delete', m),
+      };
+    });
+
+    const withTransferHelpers = (t) => ({
+      ...t,
+      progressPct: Math.round(t.progress) + '%',
+      progressLabel: Math.round(t.progress) + '%',
+      cancel: () => this.cancelTransfer(t.id),
+      retry: () => this.retryTransfer(t.id),
+    });
+    const transfersActive = s.transfers.filter((t) => t.status === 'active').map(withTransferHelpers);
+    const transfersWaiting = s.transfers.filter((t) => t.status === 'waiting').map(withTransferHelpers);
+    const transfersDone = s.transfers.filter((t) => t.status === 'done').map(withTransferHelpers);
+    const transfersFailed = s.transfers.filter((t) => t.status === 'failed').map(withTransferHelpers);
+
+    const historyItems = this.buildHistory();
+    const images = historyItems.filter((h) => h.type === 'image');
+    const filteredHistory = historyItems
+      .filter((h) => s.historyFilter === 'all' || h.type === s.historyFilter)
+      .filter((h) => !s.historySearch || h.name.toLowerCase().includes(s.historySearch.toLowerCase()))
+      .map((h) => ({
+        ...h,
+        isImage: h.type === 'image',
+        isFile: h.type === 'file',
+        isLink: h.type === 'link',
+        isText: h.type === 'text',
+        open: () => {
+          if (h.type === 'image') this.openLightbox(images.findIndex((im) => im.id === h.id));
+          else this.setState({ preview: h });
+        },
+      }));
+
+    const filterDefs = [
+      ['all', 'Alle'],
+      ['image', 'Bilder'],
+      ['file', 'Dateien'],
+      ['link', 'Links'],
+      ['text', 'Text'],
+    ];
+    const historyFilters = filterDefs.map(([id, label]) => ({
+      id,
+      label,
+      btnClass: s.historyFilter === id ? 'btn-primary' : 'btn-secondary',
+      select: () => this.setState({ historyFilter: id }),
+    }));
+
+    const foundDevices = [
+      { id: 'fd1', name: 'Büro-PC', type: 'desktop', status: 'online' },
+      { id: 'fd2', name: 'Wohnzimmer-Laptop', type: 'laptop', status: 'offline', lastSeen: 'vor 2 Std.' },
+    ].map((d) => ({
+      ...d,
+      isDesktop: d.type === 'desktop',
+      isLaptop: d.type === 'laptop',
+      statusLabel: d.status === 'online' ? 'Online' : 'Zuletzt gesehen ' + d.lastSeen,
+      dotClass: d.status === 'online' ? 'tag-accent-2' : 'tag-neutral',
+      connect: () => this.doConnect(d),
+    }));
+
+    const devicesList = s.devices.map((d) => ({
+      ...d,
+      isRenaming: s.renameDeviceId === d.id,
+      isNotRenaming: s.renameDeviceId !== d.id,
+      statusLabel: d.status === 'online' ? 'Online · aktuell verbunden' : 'Zuletzt gesehen ' + d.lastSeen,
+      dotColor: d.status === 'online' ? 'var(--color-accent-2-500)' : 'var(--color-neutral-400)',
+      rename: () => this.startRename(d),
+      unlink: () => this.askUnlinkDevice(d),
+    }));
+
+    const tabs = [
+      { id: 'home', label: 'Chat', isHome: true },
+      { id: 'transfers', label: 'Übertragungen', isTransfers: true },
+      { id: 'history', label: 'Verlauf', isHistory: true },
+      { id: 'settings', label: 'Einstellungen', isSettings: true },
+    ].map((t) => ({
+      ...t,
+      color: s.screen === t.id ? 'var(--color-accent-700)' : 'color-mix(in srgb, var(--color-text) 55%, transparent)',
+      go: () => this.goTo(t.id),
+    }));
+
+    const toastStyle = { success: ['var(--color-accent-2-700)', 'var(--color-bg)'], error: ['var(--color-accent-800)', 'var(--color-bg)'], info: ['var(--color-neutral-800)', 'var(--color-bg)'] };
+    const toasts = s.toasts.map((t) => ({ ...t, bg: (toastStyle[t.type] || toastStyle.info)[0], color: (toastStyle[t.type] || toastStyle.info)[1] }));
+
+    const preview = s.preview
+      ? { ...s.preview, isImage: s.preview.type === 'image', isText: s.preview.type === 'text', isOther: s.preview.type !== 'image' && s.preview.type !== 'text' }
+      : null;
+
+    return {
+      phoneWidth: 412,
+      phoneHeight: 892,
+      screen: s.screen,
+      isPairing: s.screen === 'pairing',
+      isHome: s.screen === 'home',
+      isTransfers: s.screen === 'transfers',
+      isHistory: s.screen === 'history',
+      isSettings: s.screen === 'settings',
+      isDark: s.theme === 'dark',
+      isLightTheme: s.theme === 'light',
+      rootStyle,
+      paired: s.paired,
+      connectedTagClass: s.connected ? 'tag-accent-2' : 'tag-neutral',
+      connectedLabel: s.connected ? 'Verbunden' : 'Getrennt',
+      headerTitle: s.screen === 'home' ? 'Chat' : s.screen === 'transfers' ? 'Übertragungen' : s.screen === 'history' ? 'Verlauf' : s.screen === 'settings' ? 'Einstellungen' : 'Transformer',
+      deviceName: s.device ? s.device.name : '',
+      banner: s.banner,
+      dismissBanner: () => this.setState({ banner: null }),
+      openBannerTarget: () => this.setState({ screen: 'home', banner: null }),
+
+      isQrTab: s.pairingTab === 'qr',
+      isCodeTab: s.pairingTab === 'code',
+      setQrTab: () => this.setState({ pairingTab: 'qr' }),
+      setCodeTab: () => this.setState({ pairingTab: 'code' }),
+      codeValue: s.codeValue,
+      onCodeChange: (e) => this.setState({ codeValue: e.target.value.replace(/[^0-9]/g, '').slice(0, 6) }),
+      codeNotReady: s.codeValue.length !== 6,
+      submitCode: () => this.submitCode(),
+      foundDevices,
+      connecting: s.connecting,
+      connectingName: s.connectingName,
+
+      messages,
+      hasMessages: messages.length > 0,
+      noMessages: messages.length === 0,
+      selectMode: s.selectMode,
+      selectModeOff: !s.selectMode,
+      selectedCount: s.selectedIds.length,
+      toggleSelectMode: () => this.toggleSelectMode(),
+      deleteSelected: () => this.deleteSelected(),
+      forwardSelected: () => this.forwardSelected(),
+      composerText: s.composerText,
+      onComposerChange: (e) => this.setState({ composerText: e.target.value }),
+      onComposerKeyDown: (e) => {
+        if (e.key === 'Enter') this.sendMessage();
+      },
+      canSendOff: s.composerText.trim().length === 0,
+      sendOpacity: s.composerText.trim().length === 0 ? 0.4 : 1,
+      sendMessage: () => this.sendMessage(),
+      attachMenuOpen: s.attachMenuOpen,
+      toggleAttachMenu: () => this.setState((st) => ({ attachMenuOpen: !st.attachMenuOpen })),
+      attachImage: () => this.attach('image'),
+      attachFile: () => this.attach('file'),
+      chatDeviceOptions: s.devices.map((d) => ({ id: d.id, name: d.name })),
+      chatTargetDeviceId: s.chatTargetDeviceId || (s.devices[0] && s.devices[0].id) || '',
+      onChatTargetChange: (e) => {
+        const id = e.target.value;
+        const d = s.devices.find((x) => x.id === id);
+        this.setState({ chatTargetDeviceId: id });
+        if (d) this.addToast('info', 'Ziel: ' + d.name);
+      },
+
+      transfersActive,
+      transfersWaiting,
+      transfersDone,
+      transfersFailed,
+      hasActive: transfersActive.length > 0,
+      hasWaiting: transfersWaiting.length > 0,
+      hasDone: transfersDone.length > 0,
+      hasFailed: transfersFailed.length > 0,
+      simulateIncomingTransfer: () => this.simulateIncomingTransfer(),
+      incomingDialog: s.incomingDialog,
+      incomingDialogName: s.incomingDialog ? s.incomingDialog.name : '',
+      incomingDialogSize: s.incomingDialog ? s.incomingDialog.size : '',
+      acceptIncoming: () => this.acceptIncoming(),
+      rejectIncoming: () => this.rejectIncoming(),
+
+      historySearch: s.historySearch,
+      onSearchChange: (e) => this.setState({ historySearch: e.target.value }),
+      historyFilters,
+      filteredHistory,
+      hasHistory: filteredHistory.length > 0,
+      noHistory: filteredHistory.length === 0,
+      lightbox: s.lightbox,
+      lightboxCount: images.length,
+      lightboxPos: s.lightbox ? (s.lightbox.index % images.length) + 1 : 0,
+      lightboxName: s.lightbox ? images[s.lightbox.index % images.length].name : '',
+      closeLightbox: () => this.setState({ lightbox: null }),
+      lightboxPrev: () => this.navLightbox(-1),
+      lightboxNext: () => this.navLightbox(1),
+      preview,
+      closePreview: () => this.setState({ preview: null }),
+      previewIsImage: preview && preview.isImage,
+      previewIsText: preview && preview.isText,
+      previewIsOther: preview && preview.isOther,
+
+      settingsData: s.settings,
+      cycleFolder: () => this.cycleFolder(),
+      autoAcceptTrackBg: s.settings.autoAccept ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      autoAcceptKnobLeft: s.settings.autoAccept ? '20px' : '2px',
+      toggleAutoAccept: () => this.setState((st) => ({ settings: { ...st.settings, autoAccept: !st.settings.autoAccept } })),
+      notifTrackBg: s.settings.notifications ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      notifKnobLeft: s.settings.notifications ? '20px' : '2px',
+      toggleNotifications: () => this.setState((st) => ({ settings: { ...st.settings, notifications: !st.settings.notifications } })),
+      biometricTrackBg: s.settings.biometricLock ? 'var(--color-accent)' : 'var(--color-neutral-300)',
+      biometricKnobLeft: s.settings.biometricLock ? '20px' : '2px',
+      toggleBiometricLock: () => this.setState((st) => ({ settings: { ...st.settings, biometricLock: !st.settings.biometricLock } })),
+      setLightTheme: () => this.setState({ theme: 'light' }),
+      setDarkTheme: () => this.setState({ theme: 'dark' }),
+      devicesList,
+      renameValue: s.renameValue,
+      onRenameChange: (e) => this.setState({ renameValue: e.target.value }),
+      confirmRename: () => this.confirmRename(),
+      askClearHistory: () => this.askClearHistory(),
+      confirmDialog: s.confirmDialog,
+      closeConfirm: () => this.setState({ confirmDialog: null }),
+      runConfirm: () => this.runConfirm(),
+
+      hasToasts: toasts.length > 0,
+      toasts,
+      tabs,
+
+      simulateIncomingMessage: () => this.simulateIncomingMessage(),
+      simulateConnectionLost: () => this.simulateConnectionLost(),
+    };
+  }
+}
+</script>
+</body>
+</html>

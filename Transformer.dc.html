@@ -63,7 +63,7 @@
     </div>
   </sc-if>
 
-  <div style="flex:1;overflow:auto;position:relative;padding:16px 18px 90px">
+  <div id="screenScroll" style="flex:1;overflow:auto;position:relative;padding:16px 18px 90px">
 
     <sc-if value="{{ isPairing }}" hint-placeholder-val="{{ true }}">
       <div>
@@ -156,7 +156,7 @@
                     <div style="font-size:14px;text-wrap:pretty">{{ m.text }}</div>
                   </sc-if>
                   <sc-if value="{{ m.isLink }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;gap:10px;align-items:center;min-width:180px">
+                    <div onClick="{{ m.openPreview }}" style="display:flex;gap:10px;align-items:center;min-width:180px">
                       <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-2-100);display:flex;align-items:center;justify-content:center;color:var(--color-accent-2-700);flex:none">
                         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:16px;height:16px"><path d="M9 15l6-6"></path><path d="M8 8l1.5-1.5a3.5 3.5 0 015 5L13 13"></path><path d="M16 16l-1.5 1.5a3.5 3.5 0 01-5-5L11 11"></path></svg>
                       </div>
@@ -167,7 +167,7 @@
                     </div>
                   </sc-if>
                   <sc-if value="{{ m.isFile }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;gap:10px;align-items:center;min-width:180px">
+                    <div onClick="{{ m.openPreview }}" style="display:flex;gap:10px;align-items:center;min-width:180px">
                       <div style="width:34px;height:34px;border-radius:8px;background:var(--color-accent-100);color:var(--color-accent-800);display:flex;align-items:center;justify-content:center;font-size:9px;font-weight:700;flex:none">{{ m.ext }}</div>
                       <div style="min-width:0">
                         <div style="font-size:13px;font-weight:600;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">{{ m.name }}</div>
@@ -176,7 +176,7 @@
                     </div>
                   </sc-if>
                   <sc-if value="{{ m.isImages }}" hint-placeholder-val="{{ false }}">
-                    <div style="display:flex;gap:5px">
+                    <div onClick="{{ m.openPreview }}" style="display:flex;gap:5px">
                       <sc-for list="{{ m.thumbs }}" as="th" hint-placeholder-count="2">
                         <div style="width:76px;height:76px;border-radius:var(--radius-sm);background:var(--color-neutral-200);display:flex;align-items:center;justify-content:center;color:var(--color-text);flex:none">
                           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><rect x="3" y="4" width="18" height="16" rx="3"></rect><circle cx="9" cy="10" r="1.6"></circle><path d="M4 17l5-5 4 4 3-3 4 4"></path></svg>
@@ -454,17 +454,19 @@
     </sc-if>
   </sc-if>
 
-  <div style="flex:none;display:flex;border-top:1px solid var(--color-divider);background:var(--color-surface)">
-    <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
-      <button onClick="{{ tb.go }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 11px;color:{{ tb.color }}">
-        <sc-if value="{{ tb.isHome }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path></svg></sc-if>
-        <sc-if value="{{ tb.isTransfers }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></sc-if>
-        <sc-if value="{{ tb.isHistory }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></sc-if>
-        <sc-if value="{{ tb.isSettings }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M4 6h10"></path><circle cx="17" cy="6" r="2"></circle><path d="M4 12h4"></path><circle cx="11" cy="12" r="2"></circle><path d="M15 12h5"></path><path d="M4 18h10"></path><circle cx="17" cy="18" r="2"></circle></svg></sc-if>
-        <span style="font-size:10px;font-weight:600">{{ tb.label }}</span>
-      </button>
-    </sc-for>
-  </div>
+  <sc-if value="{{ notPairing }}" hint-placeholder-val="{{ true }}">
+    <div style="flex:none;display:flex;border-top:1px solid var(--color-divider);background:var(--color-surface)">
+      <sc-for list="{{ tabs }}" as="tb" hint-placeholder-count="4">
+        <button onClick="{{ tb.go }}" style="flex:1;display:flex;flex-direction:column;align-items:center;gap:2px;padding:9px 0 11px;color:{{ tb.color }}">
+          <sc-if value="{{ tb.isHome }}" hint-placeholder-val="{{ true }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M21 11.5a8.38 8.38 0 01-.9 3.8 8.5 8.5 0 01-7.6 4.7 8.38 8.38 0 01-3.8-.9L3 21l1.9-5.7a8.38 8.38 0 01-.9-3.8 8.5 8.5 0 014.7-7.6 8.38 8.38 0 013.8-.9h.5a8.48 8.48 0 018 8v.5z"></path></svg></sc-if>
+          <sc-if value="{{ tb.isTransfers }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M17 3l4 4-4 4"></path><path d="M3 7h18"></path><path d="M7 21l-4-4 4-4"></path><path d="M21 17H3"></path></svg></sc-if>
+          <sc-if value="{{ tb.isHistory }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><circle cx="12" cy="12" r="9"></circle><path d="M12 7v5l3 3"></path></svg></sc-if>
+          <sc-if value="{{ tb.isSettings }}" hint-placeholder-val="{{ false }}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.75" stroke-linecap="round" stroke-linejoin="round" style="width:20px;height:20px"><path d="M4 6h10"></path><circle cx="17" cy="6" r="2"></circle><path d="M4 12h4"></path><circle cx="11" cy="12" r="2"></circle><path d="M15 12h5"></path><path d="M4 18h10"></path><circle cx="17" cy="18" r="2"></circle></svg></sc-if>
+          <span style="font-size:10px;font-weight:600">{{ tb.label }}</span>
+        </button>
+      </sc-for>
+    </div>
+  </sc-if>
 
   <sc-if value="{{ hasToasts }}" hint-placeholder-val="{{ false }}">
     <div style="position:absolute;bottom:86px;left:16px;right:16px;display:flex;flex-direction:column;gap:6px;z-index:50">
@@ -578,13 +580,13 @@ class Component extends DCLogic {
     attachMenuOpen: false,
     composerText: '',
     messages: [
-      { id: 'm1', kind: 'date', label: 'Heute' },
-      { id: 'm2', kind: 'text', dir: 'in', text: 'Hey, schick mir kurz die Präsentation?', time: '09:12' },
-      { id: 'm3', kind: 'text', dir: 'out', text: 'Klar, einen Moment.', time: '09:13' },
-      { id: 'm4', kind: 'file', dir: 'out', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', time: '09:14' },
-      { id: 'm5', kind: 'link', dir: 'in', title: 'Figma – Projektdateien', domain: 'figma.com', time: '09:20' },
-      { id: 'm6', kind: 'images', dir: 'in', count: 2, time: '09:24' },
-      { id: 'm7', kind: 'text', dir: 'out', text: 'Sieht gut aus, danke!', time: '09:25' },
+      { id: 'm1', kind: 'date', label: 'Heute', deviceId: 'd1' },
+      { id: 'm2', kind: 'text', dir: 'in', text: 'Hey, schick mir kurz die Präsentation?', time: '09:12', deviceId: 'd1' },
+      { id: 'm3', kind: 'text', dir: 'out', text: 'Klar, einen Moment.', time: '09:13', deviceId: 'd1' },
+      { id: 'm4', kind: 'file', dir: 'out', name: 'Praesentation_Q3.pdf', size: '4.2 MB', ext: 'PDF', time: '09:14', deviceId: 'd1' },
+      { id: 'm5', kind: 'link', dir: 'in', title: 'Figma – Projektdateien', domain: 'figma.com', time: '09:20', deviceId: 'd1' },
+      { id: 'm6', kind: 'images', dir: 'in', count: 2, time: '09:24', deviceId: 'd1' },
+      { id: 'm7', kind: 'text', dir: 'out', text: 'Sieht gut aus, danke!', time: '09:25', deviceId: 'd1' },
     ],
     transfers: [
       { id: 't1', name: 'Urlaubsfotos.zip', size: '128 MB', ext: 'ZIP', dir: 'send', status: 'active', progress: 62, speed: '11.4 MB/s' },
@@ -625,10 +627,36 @@ class Component extends DCLogic {
       if (e.key === 'ArrowLeft') this.navLightbox(-1);
     };
     document.addEventListener('keydown', this._keyHandler);
+    this._lastScrollKey = this.chatScrollKey();
+    this.maybeScrollChat();
   }
   componentWillUnmount() {
     clearInterval(this._interval);
     document.removeEventListener('keydown', this._keyHandler);
+  }
+  componentDidUpdate() {
+    const key = this.chatScrollKey();
+    if (key !== this._lastScrollKey) {
+      this._lastScrollKey = key;
+      this.maybeScrollChat();
+    }
+  }
+
+  chatScrollKey() {
+    const active = this.activeDeviceId();
+    const count = this.state.messages.filter((m) => m.deviceId === active).length;
+    return this.state.screen + '|' + active + '|' + count;
+  }
+  maybeScrollChat() {
+    if (this.state.screen !== 'home') return;
+    const el = document.getElementById('screenScroll');
+    if (el) requestAnimationFrame(() => { el.scrollTop = el.scrollHeight; });
+  }
+
+  activeDeviceId() {
+    const s = this.state;
+    if (s.devices.some((d) => d.id === s.chatTargetDeviceId)) return s.chatTargetDeviceId;
+    return (s.devices[0] && s.devices[0].id) || null;
   }
 
   tick() {
@@ -667,12 +695,20 @@ class Component extends DCLogic {
   doConnect(d) {
     this.setState({ connecting: true, connectingName: d.name });
     setTimeout(() => {
-      this.setState({
-        connecting: false,
-        paired: true,
-        connected: true,
-        screen: 'home',
-        device: { id: d.id, name: d.name, type: d.type },
+      this.setState((s) => {
+        const exists = s.devices.some((x) => x.id === d.id);
+        const devices = exists
+          ? s.devices.map((x) => (x.id === d.id ? { ...x, status: 'online' } : x))
+          : [...s.devices, { id: d.id, name: d.name, type: d.type, status: 'online' }];
+        return {
+          connecting: false,
+          paired: true,
+          connected: true,
+          screen: 'home',
+          device: { id: d.id, name: d.name, type: d.type },
+          devices,
+          chatTargetDeviceId: d.id,
+        };
       });
       this.addToast('success', 'Mit ' + d.name + ' verbunden');
     }, 1400);
@@ -684,28 +720,39 @@ class Component extends DCLogic {
   }
 
   sendMessage() {
+    if (!this.state.connected) {
+      this.addToast('error', 'Nicht verbunden');
+      return;
+    }
     const text = this.state.composerText.trim();
     if (!text) return;
     const isLink = /^https?:\/\//i.test(text) || /^[\w.-]+\.[a-z]{2,}\//i.test(text);
     const id = 'm-' + Date.now();
     const time = this.now();
+    const deviceId = this.activeDeviceId();
     let entry;
     if (isLink) {
       const domain = text.replace(/^https?:\/\//i, '').split('/')[0];
-      entry = { id, kind: 'link', dir: 'out', title: 'Geteilter Link', domain, time };
+      entry = { id, kind: 'link', dir: 'out', title: 'Geteilter Link', domain, time, deviceId };
     } else {
-      entry = { id, kind: 'text', dir: 'out', text, time };
+      entry = { id, kind: 'text', dir: 'out', text, time, deviceId };
     }
     this.setState((s) => ({ messages: [...s.messages, entry], composerText: '' }));
   }
 
   attach(kind) {
+    if (!this.state.connected) {
+      this.addToast('error', 'Nicht verbunden');
+      this.setState({ attachMenuOpen: false });
+      return;
+    }
     const id = 'm-' + Date.now();
     const time = this.now();
+    const deviceId = this.activeDeviceId();
     const entry =
       kind === 'image'
-        ? { id, kind: 'images', dir: 'out', count: 1, time }
-        : { id, kind: 'file', dir: 'out', name: 'Scan_' + this.now().replace(':', '') + '.pdf', size: '1.1 MB', ext: 'PDF', time };
+        ? { id, kind: 'images', dir: 'out', count: 1, time, deviceId }
+        : { id, kind: 'file', dir: 'out', name: 'Scan_' + this.now().replace(':', '') + '.pdf', size: '1.1 MB', ext: 'PDF', time, deviceId };
     this.setState((s) => ({ messages: [...s.messages, entry], attachMenuOpen: false }));
   }
 
@@ -740,8 +787,18 @@ class Component extends DCLogic {
     }
     if (action === 'copy') this.addToast('success', 'Kopiert');
     if (action === 'save') this.addToast('success', 'Gespeichert');
-    if (action === 'open') this.addToast('info', 'Öffnen…');
+    if (action === 'open') this.openMessagePreview(item);
     if (action === 'forward') this.addToast('info', 'Weitergeleitet');
+  }
+
+  openMessagePreview(item) {
+    if (item.kind === 'file') {
+      this.setState({ preview: { name: item.name, type: 'other', ext: item.ext, meta: item.size } });
+    } else if (item.kind === 'link') {
+      this.setState({ preview: { name: item.title, type: 'other', ext: 'LINK', meta: item.domain } });
+    } else if (item.kind === 'images') {
+      this.setState({ preview: { name: (item.count || 1) + ' Bild(er)', type: 'image', ext: 'IMG', meta: '' } });
+    }
   }
 
   cancelTransfer(id) {
@@ -760,10 +817,19 @@ class Component extends DCLogic {
     if (this.state.settings.autoAccept) {
       this.setState((s) => ({ transfers: [...s.transfers, item] }));
       this.addToast('info', 'Empfange ' + item.name);
-      if (this.state.screen !== 'transfers') this.setState({ banner: { title: 'Neue Übertragung', message: item.name } });
+      if (this.state.screen !== 'transfers') this.showBanner({ title: 'Neue Übertragung', message: item.name });
     } else {
       this.setState({ incomingDialog: item });
     }
+  }
+
+  showBanner(banner) {
+    const token = {};
+    this._bannerToken = token;
+    this.setState({ banner });
+    setTimeout(() => {
+      if (this._bannerToken === token) this.setState({ banner: null });
+    }, 5000);
   }
   acceptIncoming() {
     const item = this.state.incomingDialog;
@@ -777,11 +843,13 @@ class Component extends DCLogic {
 
   simulateIncomingMessage() {
     const id = 'm-' + Date.now();
-    const entry = { id, kind: 'text', dir: 'in', text: 'Kannst du mir das Update noch heute schicken?', time: this.now() };
+    const deviceId = this.activeDeviceId();
+    const entry = { id, kind: 'text', dir: 'in', text: 'Kannst du mir das Update noch heute schicken?', time: this.now(), deviceId };
     this.setState((s) => ({ messages: [...s.messages, entry] }));
     if (this.state.screen !== 'home') {
-      const deviceName = (this.state.device && this.state.device.name) || 'Nachricht';
-      this.setState({ banner: { title: deviceName, message: entry.text } });
+      const dv = this.state.devices.find((d) => d.id === deviceId);
+      const deviceName = (dv && dv.name) || (this.state.device && this.state.device.name) || 'Nachricht';
+      this.showBanner({ title: deviceName, message: entry.text });
     }
   }
   simulateConnectionLost() {
@@ -816,6 +884,7 @@ class Component extends DCLogic {
   confirmRename() {
     this.setState((s) => ({
       devices: s.devices.map((d) => (d.id === s.renameDeviceId ? { ...d, name: s.renameValue || d.name } : d)),
+      device: s.device && s.device.id === s.renameDeviceId ? { ...s.device, name: s.renameValue || s.device.name } : s.device,
       renameDeviceId: null,
     }));
   }
@@ -826,7 +895,14 @@ class Component extends DCLogic {
         body: '"' + d.name + '" wird entkoppelt und muss neu verbunden werden.',
         confirmLabel: 'Entkoppeln',
         onConfirm: () => {
-          this.setState((s) => ({ devices: s.devices.filter((x) => x.id !== d.id) }));
+          this.setState((s) => {
+            const wasActive = s.device && s.device.id === d.id;
+            return {
+              devices: s.devices.filter((x) => x.id !== d.id),
+              chatTargetDeviceId: s.chatTargetDeviceId === d.id ? null : s.chatTargetDeviceId,
+              ...(wasActive ? { paired: false, connected: false, device: null, screen: 'pairing' } : {}),
+            };
+          });
           this.addToast('info', d.name + ' entkoppelt');
         },
       },
@@ -887,7 +963,8 @@ class Component extends DCLogic {
       ...themeVars,
     };
 
-    const messages = s.messages.map((m) => {
+    const activeDeviceId = this.activeDeviceId();
+    const messages = s.messages.filter((m) => m.deviceId === activeDeviceId).map((m) => {
       const isBubble = m.kind !== 'date';
       const isOut = m.dir === 'out';
       const canCopy = m.kind === 'text' || m.kind === 'link';
@@ -923,6 +1000,7 @@ class Component extends DCLogic {
         open: () => this.menuAction('open', m),
         forward: () => this.menuAction('forward', m),
         remove: () => this.menuAction('delete', m),
+        openPreview: () => this.openMessagePreview(m),
       };
     });
 
@@ -1020,6 +1098,7 @@ class Component extends DCLogic {
       isSettings: s.screen === 'settings',
       isDark: s.theme === 'dark',
       isLightTheme: s.theme === 'light',
+      notPairing: s.screen !== 'pairing',
       rootStyle,
       paired: s.paired,
       connectedTagClass: s.connected ? 'tag-accent-2' : 'tag-neutral',
@@ -1056,20 +1135,26 @@ class Component extends DCLogic {
       onComposerKeyDown: (e) => {
         if (e.key === 'Enter') this.sendMessage();
       },
-      canSendOff: s.composerText.trim().length === 0,
-      sendOpacity: s.composerText.trim().length === 0 ? 0.4 : 1,
+      canSendOff: s.composerText.trim().length === 0 || !s.connected,
+      sendOpacity: s.composerText.trim().length === 0 || !s.connected ? 0.4 : 1,
       sendMessage: () => this.sendMessage(),
       attachMenuOpen: s.attachMenuOpen,
-      toggleAttachMenu: () => this.setState((st) => ({ attachMenuOpen: !st.attachMenuOpen })),
+      toggleAttachMenu: () => {
+        if (!s.connected) {
+          this.addToast('error', 'Nicht verbunden');
+          return;
+        }
+        this.setState((st) => ({ attachMenuOpen: !st.attachMenuOpen }));
+      },
       attachImage: () => this.attach('image'),
       attachFile: () => this.attach('file'),
       chatDeviceOptions: s.devices.map((d) => ({ id: d.id, name: d.name })),
-      chatTargetDeviceId: s.chatTargetDeviceId || (s.devices[0] && s.devices[0].id) || '',
+      chatTargetDeviceId: activeDeviceId || '',
       onChatTargetChange: (e) => {
         const id = e.target.value;
         const d = s.devices.find((x) => x.id === id);
-        this.setState({ chatTargetDeviceId: id });
-        if (d) this.addToast('info', 'Ziel: ' + d.name);
+        this.setState({ chatTargetDeviceId: id, selectMode: false, selectedIds: [], contextMenuFor: null });
+        if (d) this.addToast('info', 'Chat: ' + d.name);
       },
 
       transfersActive,

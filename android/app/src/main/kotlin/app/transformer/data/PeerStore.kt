@@ -26,9 +26,12 @@ class PeerStore(private val context: Context) {
         val DARK_THEME = booleanPreferencesKey("dark_theme")
     }
 
+    /** [Keys.PEERS] holds Keystore-encrypted JSON, not plaintext — every
+     * stored peer's [StoredPeer.keyB64] is the AES key that protects that
+     * device's messages and files, so it never sits on disk in the clear. */
     val peers: Flow<List<StoredPeer>> = context.dataStore.data.map { prefs ->
         prefs[Keys.PEERS]?.let { raw ->
-            runCatching { json.decodeFromString<List<StoredPeer>>(raw) }.getOrDefault(emptyList())
+            runCatching { json.decodeFromString<List<StoredPeer>>(SecureStorage.decrypt(raw)) }.getOrDefault(emptyList())
         } ?: emptyList()
     }
 
@@ -44,7 +47,7 @@ class PeerStore(private val context: Context) {
     suspend fun peerById(id: String): StoredPeer? = peers.first().firstOrNull { it.id == id }
 
     private suspend fun savePeers(list: List<StoredPeer>) {
-        context.dataStore.edit { it[Keys.PEERS] = json.encodeToString(list) }
+        context.dataStore.edit { it[Keys.PEERS] = SecureStorage.encrypt(json.encodeToString(list)) }
     }
 
     suspend fun upsertPeer(peer: StoredPeer) {

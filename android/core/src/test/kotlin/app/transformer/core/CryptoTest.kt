@@ -31,4 +31,18 @@ class CryptoTest {
         val envelope = Crypto.encrypt(key, "secret".toByteArray())
         assertThrows(Exception::class.java) { Crypto.decrypt(other, envelope) }
     }
+
+    @Test
+    fun `matching aad round-trips`() {
+        val key = Crypto.generateKey()
+        val envelope = Crypto.encrypt(key, "secret".toByteArray(), aad = "msg:0".toByteArray())
+        assertEquals("secret", String(Crypto.decrypt(key, envelope, aad = "msg:0".toByteArray())))
+    }
+
+    @Test
+    fun `mismatched aad fails to decrypt - detects replay or reorder`() {
+        val key = Crypto.generateKey()
+        val envelope = Crypto.encrypt(key, "secret".toByteArray(), aad = "msg:0".toByteArray())
+        assertThrows(Exception::class.java) { Crypto.decrypt(key, envelope, aad = "msg:1".toByteArray()) }
+    }
 }

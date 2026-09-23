@@ -56,9 +56,16 @@ data class PairingPayload(
 
 /** The plaintext preamble line a connecting client sends right after the
  * TCP handshake, before anything is encrypted, so the accepting side knows
- * which stored peer (and therefore which key) this socket belongs to. */
+ * which stored peer (and therefore which key) this socket belongs to.
+ * [nonce] is a fresh random value the client generates for this connection
+ * only — both sides fold it into the HKDF session-key derivation, so every
+ * new connection gets entirely different keys even when it's the same
+ * pairing reconnecting. That's what stops a frame captured on one
+ * connection from being replayed as if it were part of a different one:
+ * the replayed ciphertext simply won't decrypt under the new connection's
+ * keys. */
 @Serializable
-data class HelloBody(val id: String, val name: String)
+data class HelloBody(val id: String, val name: String, val nonce: String)
 
 enum class Direction { SEND, RECEIVE }
 enum class TransferStatus { ACTIVE, WAITING, DONE, FAILED }
@@ -78,3 +85,8 @@ data class TransferProgress(
 )
 
 enum class IncomingDecision { ACCEPT, REJECT }
+
+/** Which side of a [PeerConnection] this device is on — the dialer or the
+ * accepter. Fixes which of the two HKDF-derived subkeys is used to send vs.
+ * receive, so each direction has its own key. */
+enum class ConnectionRole { CLIENT, SERVER }

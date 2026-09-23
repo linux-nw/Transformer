@@ -34,10 +34,15 @@ object Crypto {
     fun importKeyB64(b64: String): SecretKey =
         SecretKeySpec(Base64.getDecoder().decode(b64), KEY_ALGO)
 
-    fun encrypt(key: SecretKey, plaintext: ByteArray): Envelope {
+    /** [aad] (additional authenticated data) is bound into the GCM tag but
+     * never encrypted — used to tie a ciphertext to context (frame type,
+     * sequence number) that must match exactly on decrypt or the tag check
+     * fails, e.g. to detect a replayed or reordered frame. */
+    fun encrypt(key: SecretKey, plaintext: ByteArray, aad: ByteArray = ByteArray(0)): Envelope {
         val iv = ByteArray(IV_BYTES).also { random.nextBytes(it) }
         val cipher = Cipher.getInstance(TRANSFORM)
         cipher.init(Cipher.ENCRYPT_MODE, key, GCMParameterSpec(TAG_BITS, iv))
+        if (aad.isNotEmpty()) cipher.updateAAD(aad)
         val ciphertext = cipher.doFinal(plaintext)
         return Envelope(
             iv = Base64.getEncoder().encodeToString(iv),
@@ -45,11 +50,14 @@ object Crypto {
         )
     }
 
-    fun decrypt(key: SecretKey, envelope: Envelope): ByteArray {
+    /** Throws (AEADBadTagException) if [aad] doesn't match what the sender
+     * used, exactly as if the ciphertext itself had been tampered with. */
+    fun decrypt(key: SecretKey, envelope: Envelope, aad: ByteArray = ByteArray(0)): ByteArray {
         val iv = Base64.getDecoder().decode(envelope.iv)
         val ciphertext = Base64.getDecoder().decode(envelope.data)
         val cipher = Cipher.getInstance(TRANSFORM)
         cipher.init(Cipher.DECRYPT_MODE, key, GCMParameterSpec(TAG_BITS, iv))
+        if (aad.isNotEmpty()) cipher.updateAAD(aad)
         return cipher.doFinal(ciphertext)
     }
 }
@@ -57,8 +65,8 @@ object Crypto {
 @PublishedApi
 internal val protocolJson = Json { ignoreUnknownKeys = true }
 
-inline fun <reified T> encryptJson(key: SecretKey, value: T): Envelope =
-    Crypto.encrypt(key, protocolJson.encodeToString(value).toByteArray(Charsets.UTF_8))
+inline fun <reified T> encryptJson(key: SecretKey, value: T, aad: ByteArray = ByteArray(0)): Envelope =
+    Crypto.encrypt(key, protocolJson.encodeToString(value).toByteArray(Charsets.UTF_8), aad)
 
-inline fun <reified T> decryptJson(key: SecretKey, envelope: Envelope): T =
-    protocolJson.decodeFromString(Crypto.decrypt(key, envelope).toString(Charsets.UTF_8))
+inline fun <reified T> decryptJson(key: SecretKey, envelope: Envelope, aad: ByteArray = ByteArray(0)): T =
+    protocolJson.decodeFromString(Crypto.decrypt(key, envelope, aad).toString(Charsets.UTF_8))

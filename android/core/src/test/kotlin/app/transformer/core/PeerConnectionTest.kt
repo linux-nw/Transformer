@@ -1,10 +1,13 @@
 package app.transformer.core
 
+import java.net.Socket
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.CountDownLatch
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.LinkedBlockingQueue
 import javax.crypto.SecretKey
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.json.Json
 import org.junit.Assert.assertArrayEquals
 import org.junit.Assert.assertEquals
 import org.junit.Assert.assertTrue
@@ -132,6 +135,95 @@ class PeerConnectionTest {
         val (_, reBody) = listenerA.messages.poll(5, TimeUnit.SECONDS)
             ?: throw AssertionError("A never received the post-reconnect message")
         assertEquals("Nach dem Reconnect", reBody.text)
+
+        server.stop()
+    }
+
+    /** Reproduces the private `aadFor` in PeerConnection.kt — kept in sync by
+     * the "matching aad round-trips" / "mismatched aad" cases in CryptoTest,
+     * and by these tests actually talking to a real [PeerServer]. */
+    private fun forgedAad(type: String, seq: Long): ByteArray {
+        val seqBytes = ByteArray(8)
+        for (i in 0 until 8) seqBytes[7 - i] = ((seq shr (i * 8)) and 0xFF).toByte()
+        return type.toByteArray(Charsets.UTF_8) + seqBytes
+    }
+
+    /** A forged "attacker" connection that speaks the wire protocol directly
+     * (bypassing [PeerClient]/[PeerConnection] entirely) so tests can inject
+     * exact raw bytes a real client would never construct — the point being
+     * that the server must defend itself against bytes, not against
+     * whatever our own client happens to send. */
+    private fun forgeMsgFrameLine(pairingKey: SecretKey, nonce: String, seq: Long, text: String): String {
+        val sendKey = Hkdf.deriveAesKey(pairingKey, "transformer/c2s/v1/$nonce")
+        val body = MessageBody(kind = "text", text = text, time = "00:00", msgId = IdGen.next())
+        val envelope = encryptJson(sendKey, body, forgedAad("msg", seq))
+        return Json.encodeToString(Frame("msg", envelope))
+    }
+
+    @Test
+    fun `replaying the same frame twice on one connection closes it instead of delivering it twice`() {
+        val pairingId = IdGen.next()
+        val key: SecretKey = Crypto.generateKey()
+        val listenerA = RecordingListener("A")
+        val server = PeerServer(port = 0, keyResolver = PeerKeyResolver { id -> if (id == pairingId) key else null }, listener = listenerA, onAccepted = { _, _ -> })
+        server.start()
+
+        val nonce = IdGen.next()
+        val socket = Socket("127.0.0.1", server.boundPort)
+        val link = PeerSocketLink(socket)
+        link.sendLine(PairingCodec.encodeHello(HelloBody(id = pairingId, name = "Angreifer", nonce = nonce)))
+
+        val frame0 = forgeMsgFrameLine(key, nonce, seq = 0, text = "echt")
+        link.sendLine(frame0)
+        val (_, firstBody) = listenerA.messages.poll(5, TimeUnit.SECONDS)
+            ?: throw AssertionError("the legitimate first frame was never delivered")
+        assertEquals("echt", firstBody.text)
+
+        // Replay the identical seq-0 bytes again: the server now expects
+        // seq 1, so this frame's AAD no longer matches and decryption must
+        // fail — closing the connection rather than delivering it again.
+        link.sendLine(frame0)
+        assertTrue("server never closed the connection after a replayed frame", listenerA.closed.await(5, TimeUnit.SECONDS))
+        assertEquals(null, listenerA.messages.poll(500, TimeUnit.MILLISECONDS))
+
+        server.stop()
+    }
+
+    @Test
+    fun `replaying a frame captured on one connection into a fresh connection is rejected`() {
+        val pairingId = IdGen.next()
+        val key: SecretKey = Crypto.generateKey()
+        val listenerA = RecordingListener("A")
+        val server = PeerServer(port = 0, keyResolver = PeerKeyResolver { id -> if (id == pairingId) key else null }, listener = listenerA, onAccepted = { _, _ -> })
+        server.start()
+
+        // --- connection #1: one legitimate frame, whose exact bytes we keep ---
+        val nonce1 = IdGen.next()
+        val socket1 = Socket("127.0.0.1", server.boundPort)
+        val link1 = PeerSocketLink(socket1)
+        link1.sendLine(PairingCodec.encodeHello(HelloBody(id = pairingId, name = "Angreifer", nonce = nonce1)))
+        val capturedFrame = forgeMsgFrameLine(key, nonce1, seq = 0, text = "abgefangen")
+        link1.sendLine(capturedFrame)
+        val (_, firstBody) = listenerA.messages.poll(5, TimeUnit.SECONDS)
+            ?: throw AssertionError("connection 1's legitimate frame was never delivered")
+        assertEquals("abgefangen", firstBody.text)
+        socket1.close()
+        assertTrue(listenerA.closed.await(5, TimeUnit.SECONDS))
+
+        // --- connection #2: a different nonce (as any real reconnect would
+        // have), but the very first frame is #1's captured bytes verbatim ---
+        val nonce2 = IdGen.next()
+        val socket2 = Socket("127.0.0.1", server.boundPort)
+        val link2 = PeerSocketLink(socket2)
+        link2.sendLine(PairingCodec.encodeHello(HelloBody(id = pairingId, name = "Angreifer", nonce = nonce2)))
+        link2.sendLine(capturedFrame)
+
+        // Wrong connection means wrong derived keys — decryption fails
+        // outright (not just the AAD/seq check), so the server closes
+        // without ever calling onMessage for the replayed content.
+        socket2.soTimeout = 5000
+        val eof = socket2.getInputStream().read()
+        assertEquals(-1, eof)
 
         server.stop()
     }

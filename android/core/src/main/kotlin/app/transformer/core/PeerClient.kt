@@ -19,7 +19,8 @@ object PeerClient {
         val socket = Socket()
         socket.connect(InetSocketAddress(payload.host, payload.port), timeoutMs)
         val link = PeerSocketLink(socket)
-        link.sendLine(PairingCodec.encodeHello(HelloBody(id = payload.id, name = myName)))
-        return PeerConnection(payload.id, link, key, listener)
+        val nonce = IdGen.next()
+        link.sendLine(PairingCodec.encodeHello(HelloBody(id = payload.id, name = myName, nonce = nonce)))
+        return PeerConnection(payload.id, link, key, ConnectionRole.CLIENT, nonce, listener)
     }
 }

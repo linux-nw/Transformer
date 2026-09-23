@@ -27,7 +27,12 @@ Two Gradle modules:
   `core/src/test/kotlin/.../PeerConnectionTest.kt`, which pairs two
   in-process "devices," sends an encrypted message, sends a 500 KB file and
   checks the reassembled bytes are exact, cancels a transfer mid-flight, and
-  reconnects reusing the same key. Run it with:
+  reconnects reusing the same key. Also covers HKDF against RFC 5869's own
+  test vectors (`HkdfTest`), and — by forging raw wire frames directly,
+  bypassing `PeerConnection`'s own client code — that a replayed frame
+  closes the connection instead of being accepted twice, and that a frame
+  captured on one connection is rejected outright on a different one. Run
+  it with:
 
   ```
   ./gradlew :core:test
@@ -37,7 +42,8 @@ Two Gradle modules:
   themed from the same design tokens as the web version's `styles.css`),
   `NsdCoordinator` (advertise/discover), `TransferService` (foreground
   service hosting the always-on `PeerServer` + NSD + the outbox queue),
-  `PeerStore` (DataStore-backed persisted pairings), QR generation (ZXing,
+  `PeerStore` (DataStore-backed persisted pairings, encrypted at rest —
+  see Encryption below), QR generation (ZXing,
   vendored, no CDN) and QR scanning (CameraX + ML Kit barcode scanning).
 
 ### Why pairing is simpler than the web version
@@ -53,12 +59,60 @@ sides already have it.
 
 ### Encryption
 
-Every message and file chunk is AES-256-GCM encrypted with a key generated
-once at pairing time and carried only inside that first QR code. This sits
-on top of (not instead of) whatever the TCP connection itself provides —
-plain TCP has no transport encryption, so the app-layer AES-GCM is what
-actually protects the content on the wire, exactly as the pairing QR's
-one-time, in-person key exchange promises.
+Every message and file chunk is AES-256-GCM encrypted, on top of (not
+instead of) whatever the TCP connection itself provides — plain TCP has no
+transport encryption, so this app-layer AES-GCM is what actually protects
+the content on the wire.
+
+The key generated once at pairing time and carried only inside that first
+QR code is never used to encrypt frames directly, though. Each connection
+derives two fresh AES-256 subkeys from it via HKDF (RFC 5869, HMAC-SHA256;
+`core/.../Hkdf.kt`, checked against the RFC's own test vectors in
+`HkdfTest`) — one for client→server, one for server→client — salted with a
+random nonce the connecting client generates fresh for that connection
+(carried in the plaintext hello preamble, alongside the pairing id).
+Consequences:
+
+- A client and a server on the same connection never share a key.
+- No two connections — even an instant reconnect of the very same pairing —
+  ever derive the same keys, so a ciphertext frame captured on one
+  connection cannot be replayed into a different one; it fails to decrypt
+  outright.
+- Every frame also binds its type and a per-direction sequence number into
+  the GCM tag as additional authenticated data, so replaying or reordering
+  a frame *within* one connection fails the tag check the same way a
+  tampered ciphertext would.
+
+Both properties are exercised in `PeerConnectionTest` by forging raw wire
+frames byte-for-byte (bypassing `PeerConnection`'s own client code
+entirely) and confirming the server rejects them — the point being that the
+server has to defend itself against arbitrary bytes, not just against
+whatever our own client happens to send.
+
+Two further hardenings on top of the crypto itself: `PeerServer` drops a
+connection that never sends its hello line within 10s (a "slow-loris"
+wouldn't otherwise be told apart from someone on a slow network) and caps
+concurrent connections at 64 rather than spawning a thread per socket
+without bound; and a `FileMetaBody` claiming a negative size, more than
+20 GiB, or more than 500,000 chunks is rejected before any buffer for it is
+allocated, so a malicious or buggy peer can't trigger an OOM just by
+lying in its own metadata frame.
+
+On the Android side, every stored pairing key sits in `PeerStore` encrypted
+with an AES-256 key that lives only in the Android Keystore
+(`data/SecureStorage.kt`) — hardware-backed where the device supports it —
+rather than as plaintext in DataStore's preferences file, and the app
+declares `allowBackup="false"` so none of it can leave the device via
+`adb backup` or cloud backup in the first place.
+
+One thing this deliberately does *not* change: the hello preamble
+(`{id, name, nonce}`) is still sent before any key is even looked up, so
+`name` — the paired device's display name, nothing more sensitive than
+that — is visible in the clear to anyone already able to sniff traffic on
+the LAN. Fixing that would mean moving the name into the first encrypted
+frame and making its delivery asynchronous, which ripples into how
+`TransferService` learns a newly-accepted peer's name; left as a known,
+narrowly-scoped gap rather than folded into this pass.
 
 ### LAN-only, by construction
 
@@ -81,7 +135,7 @@ proxy's policy — every Android Gradle Plugin / AndroidX / Compose / CameraX
 - `app` — **could not be synced, compiled, or run here at all.** Every file
   under `app/` was written carefully against the stable, documented APIs
   (Jetpack Compose, `NsdManager`, CameraX, ML Kit barcode scanning,
-  DataStore, foreground `Service`) and cross-checked by hand (every
+  DataStore, foreground `Service`, Android Keystore) and cross-checked by hand (every
   `viewModel.xxx()` call against the ViewModel's actual methods, every
   `state.xxx` / `d.xxx` / `m.xxx` field access against its data class,
   every `TransferService` call the ViewModel makes against what the service

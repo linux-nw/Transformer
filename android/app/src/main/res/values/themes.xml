@@ -1,0 +1,10 @@
+<resources>
+    <!-- Compose (Material3) drives the actual UI theme; this XML theme only
+         sets the window background so the app doesn't flash white before
+         Compose takes over, matching the Organic design system's --color-bg. -->
+    <style name="Theme.Transformer" parent="android:Theme.Material.Light.NoActionBar">
+        <item name="android:windowBackground">@color/organic_bg</item>
+        <item name="android:statusBarColor">@color/organic_bg</item>
+        <item name="android:navigationBarColor">@color/organic_bg</item>
+    </style>
+</resources>
